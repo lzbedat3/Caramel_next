@@ -33,7 +33,6 @@ export function PublicBrowse({
   const reduceMotion = useReducedMotion();
   const [selected, setSelected] = useState<CategorySelection>(selectedCategory);
   const selectedRef = useRef(selected);
-  selectedRef.current = selected;
   const sections = useMemo(
     () => buildMenuSections(categories, menuItems),
     [categories, menuItems],

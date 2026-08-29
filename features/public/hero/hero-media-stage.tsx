@@ -121,14 +121,9 @@ function HeroSlideMedia({
 }
 
 export function HeroMediaStage({ slides }: HeroMediaStageProps) {
-  const prefersReducedMotion = useReducedMotion();
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const reduceMotion = Boolean(useReducedMotion());
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    setReduceMotion(Boolean(prefersReducedMotion));
-  }, [prefersReducedMotion]);
 
   const current = slides[index];
   const firstId = slides[0]?.id;
