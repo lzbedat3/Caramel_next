@@ -13,6 +13,7 @@ type LazyFadeImageProps = {
   priority?: boolean;
   eager?: boolean;
   unoptimized?: boolean;
+  quality?: number;
   fit?: "cover" | "contain" | "fill";
 };
 
@@ -24,6 +25,7 @@ export function LazyFadeImage({
   priority = false,
   eager = false,
   unoptimized,
+  quality = 70,
   fit = "cover",
 }: LazyFadeImageProps) {
   const [loaded, setLoaded] = useState(priority);
@@ -44,6 +46,7 @@ export function LazyFadeImage({
       loading={priority || eager ? "eager" : "lazy"}
       decoding="async"
       unoptimized={unoptimized}
+      quality={quality}
       onLoad={() => setLoaded(true)}
       className={cn(
         "lazy-fade-img",

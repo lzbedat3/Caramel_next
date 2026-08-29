@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: "מנות",
 };
 
+export const maxDuration = 60;
+
 export default async function AdminMenuPage() {
   const { categories, items } = await getAdminMenu();
 

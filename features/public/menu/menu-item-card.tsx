@@ -19,7 +19,7 @@ function MenuItemImage({ item }: { item: PublicMenuItem }) {
         <LazyFadeImage
           src={item.imageSrc}
           alt=""
-          sizes="(min-width: 1280px) 16vw, (min-width: 1024px) 25vw, (min-width: 768px) 28vw, 30vw"
+          sizes="(min-width: 1280px) 16vw, (min-width: 1024px) 25vw, (min-width: 768px) 28vw, 42vw"
           fit="fill"
           className={cn(!item.isAvailable && "opacity-60")}
           unoptimized={isRemoteSvg(item.imageSrc)}

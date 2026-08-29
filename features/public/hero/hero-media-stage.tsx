@@ -57,6 +57,7 @@ function HeroVideo({
         alt={slideAlt(slide)}
         fill
         sizes="100vw"
+        quality={75}
         priority={priority}
         className="object-cover"
       />
@@ -115,6 +116,7 @@ function HeroSlideMedia({
       src={slide.src}
       alt={slideAlt(slide)}
       sizes="100vw"
+      quality={75}
       priority={priority}
     />
   );

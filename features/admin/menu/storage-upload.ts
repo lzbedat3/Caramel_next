@@ -6,6 +6,11 @@ import {
   resolveMenuItemImageMime,
   validateMenuItemImageFile,
 } from "@/lib/admin/menu-item";
+import { prepareWebImage } from "@/lib/media/prepare-web-image";
+import {
+  MENU_IMAGE_MAX_EDGE,
+  WEB_IMAGE_CACHE_CONTROL,
+} from "@/lib/media/web-image";
 import { createClient } from "@/lib/supabase/client";
 
 export async function uploadMenuItemImage(
@@ -16,7 +21,8 @@ export async function uploadMenuItemImage(
     return { error: fileError };
   }
 
-  const mime = resolveMenuItemImageMime(file);
+  const prepared = await prepareWebImage(file, MENU_IMAGE_MAX_EDGE);
+  const mime = resolveMenuItemImageMime(prepared);
   const path = mime ? buildMenuItemImagePath(mime) : null;
   if (!mime || !path) {
     return { error: "סוג הקובץ אינו נתמך" };
@@ -25,10 +31,10 @@ export async function uploadMenuItemImage(
   const supabase = createClient();
   const { error } = await supabase.storage
     .from(storageBuckets.menuItems)
-    .upload(path, file, {
+    .upload(path, prepared, {
       upsert: false,
       contentType: mime,
-      cacheControl: "3600",
+      cacheControl: WEB_IMAGE_CACHE_CONTROL,
     });
 
   if (error) {

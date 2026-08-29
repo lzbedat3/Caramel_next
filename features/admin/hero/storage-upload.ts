@@ -7,6 +7,11 @@ import {
   resolveHeroMime,
   validateHeroFile,
 } from "@/lib/admin/hero";
+import { prepareWebImage } from "@/lib/media/prepare-web-image";
+import {
+  HERO_IMAGE_MAX_EDGE,
+  WEB_IMAGE_CACHE_CONTROL,
+} from "@/lib/media/web-image";
 import { createClient } from "@/lib/supabase/client";
 
 export async function uploadHeroFile(file: File): Promise<
@@ -18,7 +23,17 @@ export async function uploadHeroFile(file: File): Promise<
     return { error: fileError };
   }
 
-  const mime = resolveHeroMime(file);
+  const originalMime = resolveHeroMime(file);
+  const originalType = originalMime ? heroMediaTypeFromMime(originalMime) : null;
+  if (!originalMime || !originalType) {
+    return { error: "סוג הקובץ אינו נתמך" };
+  }
+
+  const prepared =
+    originalType === "image"
+      ? await prepareWebImage(file, HERO_IMAGE_MAX_EDGE)
+      : file;
+  const mime = resolveHeroMime(prepared);
   const type = mime ? heroMediaTypeFromMime(mime) : null;
   const path = mime ? buildHeroStoragePath(mime) : null;
   if (!mime || !type || !path) {
@@ -28,10 +43,10 @@ export async function uploadHeroFile(file: File): Promise<
   const supabase = createClient();
   const { error } = await supabase.storage
     .from(storageBuckets.hero)
-    .upload(path, file, {
+    .upload(path, prepared, {
       upsert: false,
       contentType: mime,
-      cacheControl: "3600",
+      cacheControl: WEB_IMAGE_CACHE_CONTROL,
     });
 
   if (error) {

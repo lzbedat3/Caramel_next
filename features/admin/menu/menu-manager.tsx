@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { ButtonLink } from "@/components/ui/button";
 import { routes } from "@/config/routes";
+import { CompactImagesButton } from "@/features/admin/media/compact-images-button";
 import type {
   AdminMenuCategoryOption,
   AdminMenuItem,
@@ -110,6 +111,8 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
           </p>
         ) : null}
       </div>
+
+      <CompactImagesButton />
 
       <MenuCreateForm
         categories={categories}

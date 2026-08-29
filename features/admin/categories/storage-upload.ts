@@ -6,6 +6,11 @@ import {
   resolveCategoryImageMime,
   validateCategoryImageFile,
 } from "@/lib/admin/category";
+import { prepareWebImage } from "@/lib/media/prepare-web-image";
+import {
+  CATEGORY_IMAGE_MAX_EDGE,
+  WEB_IMAGE_CACHE_CONTROL,
+} from "@/lib/media/web-image";
 import { createClient } from "@/lib/supabase/client";
 
 export async function uploadCategoryImage(
@@ -16,7 +21,8 @@ export async function uploadCategoryImage(
     return { error: fileError };
   }
 
-  const mime = resolveCategoryImageMime(file);
+  const prepared = await prepareWebImage(file, CATEGORY_IMAGE_MAX_EDGE);
+  const mime = resolveCategoryImageMime(prepared);
   const path = mime ? buildCategoryImagePath(mime) : null;
   if (!mime || !path) {
     return { error: "סוג הקובץ אינו נתמך" };
@@ -25,10 +31,10 @@ export async function uploadCategoryImage(
   const supabase = createClient();
   const { error } = await supabase.storage
     .from(storageBuckets.categories)
-    .upload(path, file, {
+    .upload(path, prepared, {
       upsert: false,
       contentType: mime,
-      cacheControl: "3600",
+      cacheControl: WEB_IMAGE_CACHE_CONTROL,
     });
 
   if (error) {

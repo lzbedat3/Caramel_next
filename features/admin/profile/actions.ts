@@ -13,6 +13,12 @@ import {
   type ProfileFieldErrors,
   type ProfileInput,
 } from "@/lib/admin/profile";
+import { encodeWebImage } from "@/lib/media/encode-web-image";
+import {
+  LOGO_IMAGE_MAX_EDGE,
+  WEB_IMAGE_CACHE_CONTROL,
+  shouldPrepareImage,
+} from "@/lib/media/web-image";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/types/database";
 
@@ -129,8 +135,7 @@ export async function saveRestaurantProfile(
 
   if (hasNewLogo && logoFile instanceof File) {
     const mime = resolveLogoMime(logoFile);
-    const storagePath = mime ? logoStoragePathForMime(mime) : null;
-    if (!mime || !storagePath) {
+    if (!mime) {
       return {
         status: "error",
         message: "יש לתקן את השדות המסומנים",
@@ -138,13 +143,33 @@ export async function saveRestaurantProfile(
       };
     }
 
-    const bytes = new Uint8Array(await logoFile.arrayBuffer());
+    const originalBytes = Buffer.from(await logoFile.arrayBuffer());
+    let uploadBytes: Buffer = originalBytes;
+    let uploadMime = mime;
+
+    if (shouldPrepareImage(mime)) {
+      const encoded = await encodeWebImage(originalBytes, LOGO_IMAGE_MAX_EDGE);
+      if (encoded && encoded !== "skip") {
+        uploadBytes = encoded.bytes;
+        uploadMime = encoded.mime;
+      }
+    }
+
+    const storagePath = logoStoragePathForMime(uploadMime);
+    if (!storagePath) {
+      return {
+        status: "error",
+        message: "יש לתקן את השדות המסומנים",
+        fieldErrors: { logo: "סוג הקובץ אינו נתמך" },
+      };
+    }
+
     const { error: uploadError } = await supabase.storage
       .from(storageBuckets.branding)
-      .upload(storagePath, bytes, {
+      .upload(storagePath, uploadBytes, {
         upsert: true,
-        contentType: mime,
-        cacheControl: "3600",
+        contentType: uploadMime,
+        cacheControl: WEB_IMAGE_CACHE_CONTROL,
       });
 
     if (uploadError) {
