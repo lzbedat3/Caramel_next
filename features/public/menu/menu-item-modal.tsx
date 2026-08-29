@@ -4,6 +4,11 @@ import { useEffect, useId, useRef } from "react";
 
 import { LazyFadeImage } from "@/components/media/lazy-fade-image";
 import { CloseIcon } from "@/components/icons";
+import { catalogImageLoader } from "@/lib/media/catalog-image";
+import {
+  MENU_CARD_IMAGE_SIZES,
+  MENU_MODAL_IMAGE_SIZES,
+} from "@/lib/media/web-image";
 import { formatPriceIls } from "@/lib/price";
 import { isRemoteSvg } from "@/lib/storage-url";
 import type { PublicMenuItem } from "@/lib/public-content";
@@ -18,6 +23,8 @@ export function MenuItemModal({ item, onClose }: MenuItemModalProps) {
   const titleId = useId();
   const price = formatPriceIls(item.price);
   const description = item.shortDescription?.trim() || null;
+  const imageSrc = item.imageSrc;
+  const remoteSvg = Boolean(imageSrc && isRemoteSvg(imageSrc));
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -59,14 +66,30 @@ export function MenuItemModal({ item, onClose }: MenuItemModalProps) {
     >
       <article className="relative grid max-h-[min(40rem,92svh)] w-full overflow-hidden bg-espresso text-surface sm:max-h-[min(32rem,88svh)] sm:grid-cols-[minmax(0,1.05fr)_minmax(16rem,0.95fr)]">
         <div className="relative aspect-[4/3] min-h-0 sm:aspect-auto sm:h-full">
-          {item.imageSrc ? (
-            <LazyFadeImage
-              src={item.imageSrc}
-              alt={item.name}
-              sizes="(min-width: 640px) 50vw, 100vw"
-              unoptimized={isRemoteSvg(item.imageSrc)}
-              eager
-            />
+          {imageSrc ? (
+            <>
+              <LazyFadeImage
+                src={imageSrc}
+                alt=""
+                sizes={MENU_CARD_IMAGE_SIZES}
+                fit="fill"
+                fade={false}
+                eager
+                loader={remoteSvg ? undefined : catalogImageLoader}
+                unoptimized={remoteSvg}
+              />
+              {remoteSvg ? null : (
+                <LazyFadeImage
+                  src={imageSrc}
+                  alt={item.name}
+                  sizes={MENU_MODAL_IMAGE_SIZES}
+                  fit="fill"
+                  eager
+                  loader={catalogImageLoader}
+                  fetchPriority="high"
+                />
+              )}
+            </>
           ) : (
             <div
               className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,var(--caramel-soft),transparent_42%),linear-gradient(145deg,var(--caramel),var(--caramel-deep),var(--espresso))]"

@@ -3,6 +3,8 @@
 import { LazyFadeImage } from "@/components/media/lazy-fade-image";
 import { InViewFade } from "@/components/public/in-view-fade";
 import { cn } from "@/lib/cn";
+import { catalogImageLoader, prefetchMenuModalImage } from "@/lib/media/catalog-image";
+import { MENU_CARD_IMAGE_SIZES } from "@/lib/media/web-image";
 import { formatPriceIls } from "@/lib/price";
 import { isRemoteSvg } from "@/lib/storage-url";
 import type { PublicMenuItem } from "@/lib/public-content";
@@ -19,8 +21,9 @@ function MenuItemImage({ item }: { item: PublicMenuItem }) {
         <LazyFadeImage
           src={item.imageSrc}
           alt=""
-          sizes="(min-width: 1280px) 16vw, (min-width: 1024px) 25vw, (min-width: 768px) 28vw, 42vw"
+          sizes={MENU_CARD_IMAGE_SIZES}
           fit="fill"
+          loader={isRemoteSvg(item.imageSrc) ? undefined : catalogImageLoader}
           className={cn(!item.isAvailable && "opacity-60")}
           unoptimized={isRemoteSvg(item.imageSrc)}
         />
@@ -43,12 +46,20 @@ export function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
   const price = formatPriceIls(item.price);
   const description = item.shortDescription?.trim() || null;
 
+  function prefetchModalImage() {
+    if (item.imageSrc && !isRemoteSvg(item.imageSrc)) {
+      prefetchMenuModalImage(item.imageSrc);
+    }
+  }
+
   return (
     <InViewFade className="min-w-0">
       <article className={cn(!item.isAvailable && "opacity-90")}>
         <button
           type="button"
           onClick={onSelect}
+          onPointerDown={prefetchModalImage}
+          onFocus={prefetchModalImage}
           aria-haspopup="dialog"
           className="group flex w-full flex-col overflow-hidden rounded-[1.05rem] border border-foreground/20 text-start transition duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:active:scale-[0.98]"
         >
