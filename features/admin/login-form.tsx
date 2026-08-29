@@ -4,9 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
-import { routes } from "@/config/routes";
+import { getSafeAdminPath } from "@/config/routes";
 import { createClient } from "@/lib/supabase/client";
-import { getSafeRedirectPath } from "@/lib/safe-redirect";
 
 type LoginFormProps = {
   nextPath?: string;
@@ -38,7 +37,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         return;
       }
 
-      router.replace(getSafeRedirectPath(nextPath, routes.admin));
+      router.replace(getSafeAdminPath(nextPath));
       router.refresh();
     } catch {
       setError("מערכת ההתחברות עדיין לא מוגדרת במלואה.");

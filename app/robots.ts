@@ -3,7 +3,14 @@ import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
 import { getPublicSeoContent } from "@/services/public-seo";
 
-const adminAndAuthDisallow = ["/admin", "/admin/", "/auth", "/auth/"];
+const adminAndAuthDisallow = [
+  "/admin",
+  "/admin/",
+  "/portal",
+  "/portal/",
+  "/auth",
+  "/auth/",
+];
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   let isIndexable = true;

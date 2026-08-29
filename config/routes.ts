@@ -1,7 +1,9 @@
+import { isSafeInternalPath } from "@/lib/safe-redirect";
+
 export const routes = {
   home: "/",
+  portal: "/portal",
   admin: "/admin",
-  adminLogin: "/admin/login",
   adminProfile: "/admin/profile",
   adminHero: "/admin/hero",
   adminCategories: "/admin/categories",
@@ -19,11 +21,16 @@ export function isAdminPath(pathname: string): boolean {
   return pathname === routes.admin || pathname.startsWith(`${routes.admin}/`);
 }
 
-export function isAdminLoginPath(pathname: string): boolean {
-  return (
-    pathname === routes.adminLogin ||
-    pathname.startsWith(`${routes.adminLogin}/`)
-  );
+export function isPortalPath(pathname: string): boolean {
+  return pathname === routes.portal || pathname.startsWith(`${routes.portal}/`);
+}
+
+export function getSafeAdminPath(path: string | null | undefined): string {
+  if (path && isSafeInternalPath(path) && isAdminPath(path)) {
+    return path;
+  }
+
+  return routes.admin;
 }
 
 export function isAuthPath(pathname: string): boolean {

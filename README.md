@@ -21,7 +21,7 @@ Public reads are gated on an active restaurant profile. When the profile is inac
 - Server Components by default
 - Client Components limited to interactive surfaces (auth forms, media players, menus, admin editors)
 
-Route groups isolate the public site (`app/(public)`), admin (`app/admin`), and auth callbacks (`app/auth`). `proxy.ts` refreshes the Supabase cookie session and redirects unauthenticated requests away from protected admin paths.
+Route groups isolate the public site (`app/(public)`), the CMS (`app/admin`), and auth callbacks (`app/auth`). `proxy.ts` refreshes the Supabase cookie session.
 
 ### Backend / data
 
@@ -61,8 +61,6 @@ Authenticated administrators can manage:
 - Social links (platform, URL, visibility, order)
 - SEO title and description overrides
 
-Unauthenticated visitors hitting `/admin/*` are sent to `/admin/login`. Authenticated non-admins see an access-denied state instead of the CMS.
-
 ## Security
 
 - RLS policies on public tables; writes require `private.is_admin()`
@@ -74,7 +72,7 @@ Unauthenticated visitors hitting `/admin/*` are sent to `/admin/login`. Authenti
 - Client-side upload validation before Storage writes; orphaned objects cleaned up on failed writes where implemented
 - Internal redirects validated (`lib/safe-redirect.ts`) to block open redirects
 - `/admin` and `/auth` are `noindex, nofollow`
-- Session refresh and admin gate in `proxy.ts` plus a second check in the protected admin layout
+- Session refresh in `proxy.ts` and authorization checks in the protected CMS layout
 
 Do not place the service role key in frontend environment variables.
 
@@ -169,7 +167,7 @@ Set in `.env.local` (no trailing slash on the site URL):
 npm run dev
 ```
 
-The public site does not require a session. `/admin` requires Auth plus an `admin_users` row.
+The public site does not require a session. The CMS is available to authorized operators.
 
 ## Database development
 

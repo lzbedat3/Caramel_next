@@ -2,8 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPublicEnv, isSupabaseConfigured } from "@/config/env";
-import { isAdminLoginPath, isAdminPath, routes } from "@/config/routes";
-import { getSafeRedirectPath } from "@/lib/safe-redirect";
+import { getSafeAdminPath, isAdminPath, isPortalPath, routes } from "@/config/routes";
 import type { Database } from "@/types/database";
 
 function applySupabaseCookies(from: NextResponse, to: NextResponse) {
@@ -28,10 +27,10 @@ export async function updateSession(request: NextRequest) {
   });
 
   if (!isSupabaseConfigured()) {
-    if (isAdminPath(request.nextUrl.pathname) && !isAdminLoginPath(request.nextUrl.pathname)) {
+    if (isAdminPath(request.nextUrl.pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = routes.adminLogin;
-      url.searchParams.set("next", request.nextUrl.pathname);
+      url.pathname = routes.home;
+      url.search = "";
       return NextResponse.redirect(url);
     }
 
@@ -74,20 +73,17 @@ export async function updateSession(request: NextRequest) {
   const isAuthenticated = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
 
-  if (isAdminPath(pathname) && !isAdminLoginPath(pathname) && !isAuthenticated) {
+  if (isAdminPath(pathname) && !isAuthenticated) {
     const url = request.nextUrl.clone();
-    url.pathname = routes.adminLogin;
-    url.searchParams.set("next", pathname);
+    url.pathname = routes.home;
+    url.search = "";
 
     return applySupabaseCookies(supabaseResponse, NextResponse.redirect(url));
   }
 
-  if (isAdminLoginPath(pathname) && isAuthenticated) {
+  if (isPortalPath(pathname) && isAuthenticated) {
     const url = request.nextUrl.clone();
-    url.pathname = getSafeRedirectPath(
-      request.nextUrl.searchParams.get("next"),
-      routes.admin,
-    );
+    url.pathname = getSafeAdminPath(request.nextUrl.searchParams.get("next"));
     url.search = "";
 
     return applySupabaseCookies(supabaseResponse, NextResponse.redirect(url));

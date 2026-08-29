@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { AdminShell } from "@/components/layout/admin-shell";
-import { routes } from "@/config/routes";
 import { AdminAccessDenied } from "@/features/admin/admin-access-denied";
 import { getAdminAccess } from "@/lib/auth/session";
 import { getAdminShellContext } from "@/services/admin-dashboard";
@@ -24,7 +23,7 @@ export default async function ProtectedAdminLayout({
   const access = await getAdminAccess();
 
   if (access.status === "unauthenticated") {
-    redirect(routes.adminLogin);
+    notFound();
   }
 
   if (access.status === "forbidden") {

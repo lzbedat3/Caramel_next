@@ -17,7 +17,7 @@ export default function AuthErrorPage() {
     <StatusScreen
       title="ההתחברות לא הושלמה"
       description="לא הצלחנו לאשר את הסשן. אפשר לנסות להיכנס שוב."
-      action={<ButtonLink href={routes.adminLogin}>חזרה לכניסה</ButtonLink>}
+      action={<ButtonLink href={routes.portal}>חזרה לכניסה</ButtonLink>}
     />
   );
 }
