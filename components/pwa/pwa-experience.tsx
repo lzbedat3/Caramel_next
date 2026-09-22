@@ -147,7 +147,6 @@ export function PwaExperience() {
         <div className="splash-caption">
           <span>גן עדן לציליאקים</span>
           <i />
-          <small>נגיעה במסך ומתחילים</small>
         </div>
       </div>
       {offline ? (
