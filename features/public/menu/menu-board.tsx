@@ -45,7 +45,11 @@ export function MenuBoard({ sections }: MenuBoardProps) {
               )}
             >
               <div className="menu-category-board-face">
-                <MenuSection section={section} onSelectItem={setActiveItem} />
+                <MenuSection
+                  section={section}
+                  onSelectItem={setActiveItem}
+                  firstSection={index === 0}
+                />
               </div>
             </div>
           </section>

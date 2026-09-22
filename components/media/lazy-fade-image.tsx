@@ -27,7 +27,7 @@ export function LazyFadeImage({
   className,
   priority = false,
   eager = false,
-  fade = true,
+  fade = false,
   unoptimized,
   quality = 70,
   loader,

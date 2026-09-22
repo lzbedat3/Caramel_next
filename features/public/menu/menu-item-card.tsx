@@ -1,5 +1,6 @@
 "use client";
 
+import { NearbyMedia } from "@/components/media/nearby-media";
 import { LazyFadeImage } from "@/components/media/lazy-fade-image";
 import { InViewFade } from "@/components/public/in-view-fade";
 import { cn } from "@/lib/cn";
@@ -15,21 +16,30 @@ import type { PublicMenuItem } from "@/lib/public-content";
 type MenuItemCardProps = {
   item: PublicMenuItem;
   onSelect: () => void;
+  immediate?: boolean;
 };
 
-function MenuItemImage({ item }: { item: PublicMenuItem }) {
+function MenuItemImage({
+  item,
+  immediate,
+}: {
+  item: PublicMenuItem;
+  immediate?: boolean;
+}) {
   return (
     <div className="bg-surface-warm relative aspect-[4/3] w-full">
       {item.imageSrc ? (
-        <LazyFadeImage
-          src={item.imageSrc}
-          alt=""
-          sizes={MENU_CARD_IMAGE_SIZES}
-          fit="cover"
-          loader={isRemoteSvg(item.imageSrc) ? undefined : catalogImageLoader}
-          className={cn(!item.isAvailable && "opacity-60")}
-          unoptimized={isRemoteSvg(item.imageSrc)}
-        />
+        <NearbyMedia immediate={immediate}>
+          <LazyFadeImage
+            src={item.imageSrc}
+            alt=""
+            sizes={MENU_CARD_IMAGE_SIZES}
+            fit="cover"
+            loader={isRemoteSvg(item.imageSrc) ? undefined : catalogImageLoader}
+            className={cn(!item.isAvailable && "opacity-60")}
+            unoptimized={isRemoteSvg(item.imageSrc)}
+          />
+        </NearbyMedia>
       ) : (
         <div
           className="from-surface via-caramel-soft to-caramel absolute inset-0 bg-gradient-to-br"
@@ -45,7 +55,7 @@ function MenuItemImage({ item }: { item: PublicMenuItem }) {
   );
 }
 
-export function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
+export function MenuItemCard({ item, onSelect, immediate }: MenuItemCardProps) {
   const price = formatPriceIls(item.price);
   const description = item.shortDescription?.trim() || null;
 
@@ -66,7 +76,7 @@ export function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
           aria-haspopup="dialog"
           className="menu-card group border-border bg-surface motion-safe:hover:shadow-lift focus-visible:ring-ring flex h-full w-full flex-col overflow-hidden rounded-[1rem] border text-start transition duration-300 ease-out focus-visible:ring-2 focus-visible:outline-none motion-safe:hover:-translate-y-1 motion-safe:active:scale-[0.98]"
         >
-          <MenuItemImage item={item} />
+          <MenuItemImage item={item} immediate={immediate} />
           <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3">
             <h3 className="text-foreground text-sm leading-5 font-semibold break-words">
               {item.name}

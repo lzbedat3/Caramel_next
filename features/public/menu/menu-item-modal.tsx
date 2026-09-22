@@ -5,10 +5,7 @@ import { useEffect, useId, useRef } from "react";
 import { LazyFadeImage } from "@/components/media/lazy-fade-image";
 import { CloseIcon } from "@/components/icons";
 import { catalogImageLoader } from "@/lib/media/catalog-image";
-import {
-  MENU_CARD_IMAGE_SIZES,
-  MENU_MODAL_IMAGE_SIZES,
-} from "@/lib/media/web-image";
+import { MENU_MODAL_IMAGE_SIZES } from "@/lib/media/web-image";
 import { formatPriceIls } from "@/lib/price";
 import { isRemoteSvg } from "@/lib/storage-url";
 import type { PublicMenuItem } from "@/lib/public-content";
@@ -81,29 +78,16 @@ export function MenuItemModal({
           className="relative aspect-[4/3] min-h-0 sm:aspect-auto sm:h-full"
         >
           {imageSrc ? (
-            <>
-              <LazyFadeImage
-                src={imageSrc}
-                alt=""
-                sizes={MENU_CARD_IMAGE_SIZES}
-                fit="cover"
-                fade={false}
-                eager
-                loader={remoteSvg ? undefined : catalogImageLoader}
-                unoptimized={remoteSvg}
-              />
-              {remoteSvg ? null : (
-                <LazyFadeImage
-                  src={imageSrc}
-                  alt={item.name}
-                  sizes={MENU_MODAL_IMAGE_SIZES}
-                  fit="cover"
-                  eager
-                  loader={catalogImageLoader}
-                  fetchPriority="high"
-                />
-              )}
-            </>
+            <LazyFadeImage
+              src={imageSrc}
+              alt={item.name}
+              sizes={MENU_MODAL_IMAGE_SIZES}
+              fit="cover"
+              eager
+              loader={remoteSvg ? undefined : catalogImageLoader}
+              unoptimized={remoteSvg}
+              fetchPriority="high"
+            />
           ) : (
             <div
               className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,var(--caramel-soft),transparent_42%),linear-gradient(145deg,var(--caramel),var(--caramel-deep),var(--espresso))]"

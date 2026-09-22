@@ -29,7 +29,7 @@ export function PwaExperience() {
       node?.classList.add("is-playing");
     const finish = window.setTimeout(
       () => node?.classList.remove("is-playing"),
-      1900,
+      850,
     );
     const initialize = window.setTimeout(() => {
       setOffline(!navigator.onLine);
@@ -145,7 +145,7 @@ export function PwaExperience() {
           <span className="splash-shadow" />
         </div>
         <div className="splash-caption">
-          <span>קצת קסם. הרבה קרמל.</span>
+          <span>גן עדן לציליאקים</span>
           <i />
           <small>נגיעה במסך ומתחילים</small>
         </div>

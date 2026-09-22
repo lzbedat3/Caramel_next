@@ -9,9 +9,14 @@ import type { PublicMenuItem } from "@/lib/public-content";
 type MenuSectionProps = {
   section: PublicMenuSection;
   onSelectItem: (item: PublicMenuItem) => void;
+  firstSection?: boolean;
 };
 
-export function MenuSection({ section, onSelectItem }: MenuSectionProps) {
+export function MenuSection({
+  section,
+  onSelectItem,
+  firstSection,
+}: MenuSectionProps) {
   const { category, items } = section;
   const rail = useRef<HTMLUListElement>(null);
   function move(direction: number) {
@@ -75,12 +80,16 @@ export function MenuSection({ section, onSelectItem }: MenuSectionProps) {
           tabIndex={0}
           className="dish-rail flex snap-x snap-mandatory gap-2.5 overflow-x-auto overscroll-x-contain px-4 pt-1 pb-4 sm:gap-3 sm:px-5"
         >
-          {items.map((item) => (
+          {items.map((item, index) => (
             <li
               key={item.id}
               className="w-[min(42vw,10rem)] shrink-0 snap-start sm:w-44 lg:w-48"
             >
-              <MenuItemCard item={item} onSelect={() => onSelectItem(item)} />
+              <MenuItemCard
+                item={item}
+                immediate={firstSection && index < 3}
+                onSelect={() => onSelectItem(item)}
+              />
             </li>
           ))}
         </ul>

@@ -35,21 +35,21 @@ export function CategoryItem({
         data-category={id}
         aria-pressed={selected}
         onClick={() => onSelect(id)}
-        className="flex w-[4.75rem] shrink-0 flex-col items-center gap-1.5 rounded-full transition duration-300 ease-out motion-safe:hover:scale-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-safe:active:scale-95 sm:w-[5.5rem] sm:gap-2.5 lg:w-24"
+        className="focus-visible:ring-ring focus-visible:ring-offset-background flex w-[4.75rem] shrink-0 flex-col items-center gap-1.5 rounded-full transition duration-300 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none motion-safe:hover:scale-[1.04] motion-safe:active:scale-95 sm:w-[5.5rem] sm:gap-2.5 lg:w-24"
       >
         <span className="relative flex size-[4.75rem] items-center justify-center sm:size-[5.5rem] lg:size-24">
           {selected ? (
             <motion.span
               layoutId={reduceMotion ? undefined : "category-active-fill"}
-              className="absolute inset-0 rounded-full bg-gradient-to-br from-caramel-soft via-caramel to-caramel-deep shadow-soft"
+              className="from-caramel-soft via-caramel to-caramel-deep shadow-soft absolute inset-0 rounded-full bg-gradient-to-br"
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             />
           ) : (
-            <span className="absolute inset-0 rounded-full bg-gradient-to-br from-surface-warm to-caramel-soft/60" />
+            <span className="from-surface-warm to-caramel-soft/60 absolute inset-0 rounded-full bg-gradient-to-br" />
           )}
           <span
             className={cn(
-              "relative flex size-[4.15rem] items-center justify-center overflow-hidden rounded-full bg-surface sm:size-[4.85rem] lg:size-[5.35rem]",
+              "bg-surface relative flex size-[4.15rem] items-center justify-center overflow-hidden rounded-full sm:size-[4.85rem] lg:size-[5.35rem]",
               selected && "bg-surface",
             )}
           >
@@ -57,15 +57,15 @@ export function CategoryItem({
               <LazyFadeImage
                 src={imageSrc}
                 alt=""
-                sizes="(min-width: 1024px) 96px, (min-width: 640px) 88px, 76px"
+                sizes="40px"
                 unoptimized={isRemoteSvg(imageSrc)}
               />
             ) : initial ? (
-              <span className="font-display text-xl text-caramel-deep sm:text-2xl">
+              <span className="font-display text-caramel-deep text-xl sm:text-2xl">
                 {initial}
               </span>
             ) : (
-              <span className="size-8 rounded-full bg-caramel-soft/70" />
+              <span className="bg-caramel-soft/70 size-8 rounded-full" />
             )}
           </span>
         </span>

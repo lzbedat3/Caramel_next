@@ -14,7 +14,7 @@ export function RestaurantMark({ name, logoSrc }: RestaurantMarkProps) {
   return (
     <div
       className={cn(
-        "relative flex size-[var(--identity-mark)] shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface shadow-lift ring-4 ring-white motion-safe:animate-[logo-settle_0.8s_cubic-bezier(0.22,1,0.36,1)_both]",
+        "bg-surface shadow-lift relative flex size-[var(--identity-mark)] shrink-0 items-center justify-center overflow-hidden rounded-full ring-4 ring-white motion-safe:animate-[logo-settle_0.8s_cubic-bezier(0.22,1,0.36,1)_both]",
       )}
     >
       {logoSrc ? (
@@ -22,17 +22,17 @@ export function RestaurantMark({ name, logoSrc }: RestaurantMarkProps) {
           src={logoSrc}
           alt={name ? `לוגו ${name}` : "לוגו המסעדה"}
           fill
-          sizes="(min-width: 1024px) 176px, (min-width: 640px) 144px, 112px"
+          sizes="(min-width: 640px) 80px, 64px"
           className="object-cover"
           unoptimized={isRemoteSvg(logoSrc)}
-          priority
+          loading="eager"
         />
       ) : initial ? (
-        <span className="font-display text-4xl text-caramel-deep sm:text-5xl">
+        <span className="font-display text-caramel-deep text-4xl sm:text-5xl">
           {initial}
         </span>
       ) : (
-        <span className="size-14 rounded-full bg-caramel-soft/80 sm:size-16" />
+        <span className="bg-caramel-soft/80 size-14 rounded-full sm:size-16" />
       )}
     </div>
   );

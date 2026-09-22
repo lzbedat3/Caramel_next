@@ -206,7 +206,7 @@ This repository is the v1 application foundation: public restaurant experience, 
 
 The public menu includes a web manifest, Apple/Android/maskable icons from
 `public/Caramel_Assets`, and a short master-logo entrance once per browser session.
-The entrance is dismissible by touch/click and skipped for reduced-motion users.
+The entrance is a brief, non-blocking corner greeting, skipped for reduced-motion users.
 The original master image is preserved; the splash uses a smaller WebP derivative.
 
 Service workers register only in production (`npm run build` then

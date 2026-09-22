@@ -836,3 +836,29 @@ body {
     display: none;
   }
 }
+
+/* The brand greeting never blocks access to the menu. */
+.caramel-splash.is-playing {
+  inset: auto auto calc(16px + env(safe-area-inset-bottom)) 16px;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 6px 24px #2a12081a;
+  animation: splash-exit 0.2s 0.6s both;
+}
+.caramel-splash .splash-stage {
+  width: 80px;
+  height: 80px;
+}
+.caramel-splash .splash-logo {
+  width: 64px;
+  height: 64px;
+  animation-duration: 0.6s;
+}
+.caramel-splash .splash-caption,
+.caramel-splash .splash-halo,
+.caramel-splash .splash-shadow,
+.caramel-splash .splash-spark {
+  display: none;
+}
