@@ -80,16 +80,16 @@ Do not place the service role key in frontend environment variables.
 
 Migrations are applied in timestamp order. Core relations:
 
-| Relation | Role |
-| --- | --- |
-| `restaurant_profile` | Singleton identity, contact, about, logo, active flag |
-| `opening_hours` | Weekday intervals (`start_time`, `end_time`; overnight when end ≤ start) |
-| `social_links` | Platform, URL, visibility, sort order |
-| `hero_media` | Image or video slides, sort order, visibility |
-| `categories` | Menu sections, images, sort order |
-| `menu_items` | Dishes; `category_id` → `categories`; price, availability, visibility, sort order |
-| `site_settings` | SEO title/description overrides |
-| `private.admin_users` | Auth user ids allowed to administer |
+| Relation              | Role                                                                              |
+| --------------------- | --------------------------------------------------------------------------------- |
+| `restaurant_profile`  | Singleton identity, contact, about, logo, active flag                             |
+| `opening_hours`       | Weekday intervals (`start_time`, `end_time`; overnight when end ≤ start)          |
+| `social_links`        | Platform, URL, visibility, sort order                                             |
+| `hero_media`          | Image or video slides, sort order, visibility                                     |
+| `categories`          | Menu sections, images, sort order                                                 |
+| `menu_items`          | Dishes; `category_id` → `categories`; price, availability, visibility, sort order |
+| `site_settings`       | SEO title/description overrides                                                   |
+| `private.admin_users` | Auth user ids allowed to administer                                               |
 
 `menu_items.category_id` is a foreign key to `categories`. Public menu rendering groups items by category sort order, then item sort order.
 
@@ -157,11 +157,11 @@ cp .env.example .env.local
 
 Set in `.env.local` (no trailing slash on the site URL):
 
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Canonical origin for metadata, sitemap, robots, and auth redirects |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key |
+| Variable                               | Purpose                                                            |
+| -------------------------------------- | ------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`                 | Canonical origin for metadata, sitemap, robots, and auth redirects |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase project URL                                               |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key                                             |
 
 ```bash
 npm run dev
@@ -201,3 +201,26 @@ npm run format
 ## Project status
 
 This repository is the v1 application foundation: public restaurant experience, CMS, auth, RLS, storage, and SEO. Live restaurant copy and media are managed through the admin portal against a Supabase project.
+
+### Progressive web app
+
+The public menu includes a web manifest, Apple/Android/maskable icons from
+`public/Caramel_Assets`, and a short master-logo entrance once per browser session.
+The entrance is dismissible by touch/click and skipped for reduced-motion users.
+The original master image is preserved; the splash uses a smaller WebP derivative.
+
+Service workers register only in production (`npm run build` then
+`npm run start`). Test over HTTPS or localhost. Supported Chromium browsers expose
+an install action when eligible; iOS users receive Safari home-screen instructions.
+The operating system controls the native launch splash using the manifest's icons
+and colors; the animated splash runs after the document hydrates.
+
+Offline navigation to `/` shows a branded reconnect page. Menu responses, prices,
+admin pages, authentication routes, and API data are never cached by the worker.
+An already open menu displays a connectivity warning if the device goes offline.
+New worker versions wait for the visitor to accept the refresh prompt. Increment
+`CACHE` in `public/sw.js` whenever changing the offline page or its cached logo.
+
+Validation: check installation on Android Chrome and iOS Safari after deployment;
+check offline reload after one successful online visit; check reduced motion and
+new-worker update acceptance. Desktop embedded previews may not offer installation.

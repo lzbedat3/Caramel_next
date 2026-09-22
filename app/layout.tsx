@@ -21,6 +21,22 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
+  appleWebApp: { capable: true, title: "Caramel", statusBarStyle: "default" },
+  icons: {
+    icon: [
+      {
+        url: "/Caramel_Assets/favicon-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/Caramel_Assets/favicon-48x48.png",
+        sizes: "48x48",
+        type: "image/png",
+      },
+    ],
+    apple: [{ url: "/Caramel_Assets/apple-touch-icon.png", sizes: "180x180" }],
+  },
   openGraph: {
     type: "website",
     locale: siteConfig.ogLocale,
@@ -40,9 +56,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f07a12",
+  themeColor: "#f7f4ed",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
