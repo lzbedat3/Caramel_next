@@ -58,7 +58,8 @@ function HeroVideo({
         fill
         sizes="100vw"
         quality={75}
-        priority={priority}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
         className="object-cover"
       />
     );
@@ -126,13 +127,32 @@ export function HeroMediaStage({ slides }: HeroMediaStageProps) {
   const reduceMotion = Boolean(useReducedMotion());
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    let inViewport = true;
+    const sync = () => setVisible(inViewport && !document.hidden);
+    const observer = new IntersectionObserver(([entry]) => {
+      inViewport = Boolean(entry?.isIntersecting);
+      sync();
+    });
+    observer.observe(stage);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, []);
 
   const current = slides[index];
   const firstId = slides[0]?.id;
   const canAdvance = slides.length > 1 && !reduceMotion;
 
   useEffect(() => {
-    if (!canAdvance || paused) {
+    if (!canAdvance || paused || !visible) {
       return;
     }
 
@@ -150,14 +170,14 @@ export function HeroMediaStage({ slides }: HeroMediaStageProps) {
     }, slide.durationMs);
 
     return () => window.clearTimeout(timer);
-  }, [canAdvance, index, paused, slides]);
+  }, [canAdvance, index, paused, slides, visible]);
 
   if (!current) {
     return null;
   }
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div ref={stageRef} className="absolute inset-0 overflow-hidden">
       <AnimatePresence initial={false}>
         <motion.div
           key={current.id}
@@ -173,7 +193,7 @@ export function HeroMediaStage({ slides }: HeroMediaStageProps) {
           <HeroSlideMedia
             slide={current}
             reduceMotion={reduceMotion}
-            paused={paused}
+            paused={paused || !visible}
             active
             priority={current.id === firstId}
             preload={current.id === firstId ? "metadata" : "none"}
@@ -185,11 +205,11 @@ export function HeroMediaStage({ slides }: HeroMediaStageProps) {
           />
         </motion.div>
       </AnimatePresence>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/55" />
+      <div className="to-background/55 pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent" />
       {canAdvance ? (
         <button
           type="button"
-          className="absolute end-4 bottom-4 z-10 rounded-pill bg-surface/80 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition duration-300 hover:bg-surface hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95"
+          className="rounded-pill bg-surface/80 text-foreground hover:bg-surface focus-visible:ring-ring absolute end-4 bottom-4 z-10 px-3 py-1.5 text-xs font-medium backdrop-blur-sm transition duration-300 hover:scale-105 focus-visible:ring-2 focus-visible:outline-none active:scale-95"
           aria-pressed={paused}
           aria-label={paused ? "המשך מצגת המדיה" : "השהיית מצגת המדיה"}
           onClick={() => setPaused((currentPaused) => !currentPaused)}

@@ -48,13 +48,12 @@ export function LazyFadeImage({
       alt={alt}
       fill
       sizes={sizes}
-      priority={priority}
       loading={priority || eager ? "eager" : "lazy"}
       decoding="async"
       unoptimized={unoptimized}
       quality={quality}
       loader={loader}
-      fetchPriority={fetchPriority}
+      fetchPriority={fetchPriority ?? (priority ? "high" : "auto")}
       onLoad={() => setLoaded(true)}
       className={cn(
         "lazy-fade-img",

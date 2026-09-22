@@ -26,10 +26,10 @@ export function CategoryRail({
   return (
     <div
       data-category-rail
-      className="-mx-5 overflow-x-auto overscroll-x-contain px-5 pt-1.5 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] sm:-mx-8 sm:px-8 md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden"
+      className="-mx-5 [scrollbar-width:none] overflow-x-auto overscroll-x-contain scroll-smooth px-5 pt-1.5 [-ms-overflow-style:none] sm:-mx-8 sm:px-8 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
     >
       <LayoutGroup>
-        <ul className="mx-auto flex w-max snap-x snap-mandatory items-start justify-center gap-4 sm:gap-5 md:w-full md:flex-wrap lg:gap-6 xl:gap-8">
+        <ul className="mx-auto flex w-max snap-x snap-mandatory items-start justify-center gap-4 sm:gap-5 lg:gap-6 xl:gap-8">
           {categories.map((category) => {
             const id = String(category.id) as `${number}`;
             return (

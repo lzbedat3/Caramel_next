@@ -1,51 +1,42 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
 
-type InViewFadeProps = {
+// One observer for the entire menu; content remains visible before hydration.
+let observer: IntersectionObserver | undefined;
+function getObserver() {
+  return (observer ??= new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("reveal-up");
+          observer?.unobserve(entry.target);
+        }
+      }
+    },
+    { rootMargin: "0px 0px 48px", threshold: 0.05 },
+  ));
+}
+
+export function InViewFade({
+  children,
+  className,
+}: {
   children: React.ReactNode;
   className?: string;
-};
-
-export function InViewFade({ children, className }: InViewFadeProps) {
+}) {
   const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-
   useEffect(() => {
     const node = ref.current;
-    if (!node) {
+    if (!node || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
       return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setShown(true);
-          observer.disconnect();
-        }
-      },
-      {
-        root: null,
-        rootMargin: "0px 56px 96px 56px",
-        threshold: 0.12,
-      },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
+    const shared = getObserver();
+    shared.observe(node);
+    return () => shared.unobserve(node);
   }, []);
-
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "lazy-fade",
-        shown ? "is-visible" : "is-pending",
-        className,
-      )}
-    >
+    <div ref={ref} className={cn(className)}>
       {children}
     </div>
   );

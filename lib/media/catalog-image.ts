@@ -39,6 +39,8 @@ export function prefetchMenuModalImage(src: string) {
   link.rel = "preload";
   link.as = "image";
   link.href = href;
+  if (props.srcSet) link.imageSrcset = props.srcSet;
+  if (props.sizes) link.imageSizes = props.sizes;
   link.setAttribute("data-menu-preload", href);
   document.head.appendChild(link);
 }

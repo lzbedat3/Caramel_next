@@ -10,12 +10,14 @@ export const fontHebrew = Heebo({
 export const fontLatin = Ubuntu({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
+  preload: false,
   variable: "--font-ubuntu",
   display: "swap",
 });
 
 export const fontArabic = Cairo({
   subsets: ["arabic"],
+  preload: false,
   variable: "--font-cairo",
   display: "swap",
 });

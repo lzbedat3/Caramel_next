@@ -32,21 +32,23 @@ export function RestaurantIdentity({
         </div>
       </div>
 
-      <div className="mt-7 max-w-xl pb-8 sm:mt-8 sm:pb-10">
+      <div className="identity-copy mt-2 max-w-xl pb-3">
         {name ? (
-          <PublicHeading className="reveal-up">{name}</PublicHeading>
+          <PublicHeading className="reveal-up text-2xl sm:text-3xl lg:text-4xl">
+            {name}
+          </PublicHeading>
         ) : (
           <h1 className="sr-only">מסעדה</h1>
         )}
 
         {subtitle ? (
-          <p className="reveal-up reveal-up-delay mt-3 text-lg leading-8 text-muted sm:text-xl">
+          <p className="reveal-up reveal-up-delay text-muted mt-1 text-sm leading-5">
             {subtitle}
           </p>
         ) : null}
 
         {!name && !subtitle ? (
-          <p className="mt-3 text-lg leading-8 text-muted">
+          <p className="text-muted mt-3 text-lg leading-8">
             פרטי המסעדה יופיעו כאן כשיתעדכנו במערכת
           </p>
         ) : null}
@@ -56,15 +58,15 @@ export function RestaurantIdentity({
             href={wazeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="reveal-up reveal-up-delay-2 mt-5 inline-flex items-start gap-2 rounded-pill text-base text-foreground underline decoration-caramel-soft underline-offset-[0.35em] transition hover:text-caramel-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="reveal-up reveal-up-delay-2 rounded-pill text-foreground decoration-caramel-soft hover:text-caramel-deep focus-visible:ring-ring mt-2 inline-flex items-start gap-2 text-xs underline underline-offset-[0.35em] transition focus-visible:ring-2 focus-visible:outline-none"
             aria-label={`ניווט ל${address} ב-Waze`}
           >
-            <PinIcon className="mt-0.5 size-5 shrink-0 text-caramel-deep" />
+            <PinIcon className="text-caramel-deep mt-0.5 size-5 shrink-0" />
             <span>{address}</span>
           </a>
         ) : address ? (
-          <p className="reveal-up reveal-up-delay-2 mt-5 inline-flex items-start gap-2 text-base text-foreground">
-            <PinIcon className="mt-0.5 size-5 shrink-0 text-caramel-deep" />
+          <p className="reveal-up reveal-up-delay-2 text-foreground mt-2 inline-flex items-start gap-2 text-xs">
+            <PinIcon className="text-caramel-deep mt-0.5 size-5 shrink-0" />
             <span>{address}</span>
           </p>
         ) : null}

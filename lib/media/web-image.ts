@@ -11,7 +11,7 @@ export const LOGO_IMAGE_MAX_EDGE = 800;
 export const COMPACT_SKIP_MAX_BYTES = 180 * 1024;
 
 export const MENU_CARD_IMAGE_SIZES =
-  "(min-width: 1280px) 16vw, (min-width: 1024px) 25vw, (min-width: 768px) 28vw, 42vw";
+  "(min-width: 1024px) 192px, (min-width: 640px) 176px, (min-width: 381px) 160px, 42vw";
 
 export const MENU_MODAL_IMAGE_SIZES = "(min-width: 640px) 26rem, 100vw";
 

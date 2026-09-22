@@ -17,12 +17,20 @@ export function MenuBoard({ sections }: MenuBoardProps) {
   const [activeItem, setActiveItem] = useState<PublicMenuItem | null>(null);
   const closeItem = useCallback(() => setActiveItem(null), []);
 
+  const activeItems =
+    sections.find((section) =>
+      section.items.some((item) => item.id === activeItem?.id),
+    )?.items ?? [];
+  const activeIndex = activeItems.findIndex(
+    (item) => item.id === activeItem?.id,
+  );
+
   return (
     <div
       id={MENU_ELEMENT_ID}
-      className="scroll-mt-36 px-4 pb-16 pt-5 sm:scroll-mt-40 sm:px-5 sm:pb-20 sm:pt-6"
+      className="mx-auto max-w-7xl scroll-mt-36 px-3 pt-3 pb-10 sm:px-8 sm:pt-5"
     >
-      <div className="flex flex-col gap-5 sm:gap-6 lg:gap-7">
+      <div className="flex flex-col gap-3 sm:gap-5">
         {sections.map((section, index) => (
           <section
             key={section.category.id}
@@ -36,11 +44,8 @@ export function MenuBoard({ sections }: MenuBoardProps) {
                 index % 2 === 1 && "menu-category-board-alt",
               )}
             >
-              <div className="menu-category-board-face py-5 sm:py-8 lg:py-9">
-                <MenuSection
-                  section={section}
-                  onSelectItem={setActiveItem}
-                />
+              <div className="menu-category-board-face">
+                <MenuSection section={section} onSelectItem={setActiveItem} />
               </div>
             </div>
           </section>
@@ -48,9 +53,20 @@ export function MenuBoard({ sections }: MenuBoardProps) {
       </div>
       {activeItem ? (
         <MenuItemModal
-          key={activeItem.id}
           item={activeItem}
           onClose={closeItem}
+          position={activeIndex + 1}
+          total={activeItems.length}
+          onPrevious={
+            activeIndex > 0
+              ? () => setActiveItem(activeItems[activeIndex - 1] ?? null)
+              : undefined
+          }
+          onNext={
+            activeIndex < activeItems.length - 1
+              ? () => setActiveItem(activeItems[activeIndex + 1] ?? null)
+              : undefined
+          }
         />
       ) : null}
     </div>

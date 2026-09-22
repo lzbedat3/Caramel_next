@@ -3,7 +3,10 @@
 import { LazyFadeImage } from "@/components/media/lazy-fade-image";
 import { InViewFade } from "@/components/public/in-view-fade";
 import { cn } from "@/lib/cn";
-import { catalogImageLoader, prefetchMenuModalImage } from "@/lib/media/catalog-image";
+import {
+  catalogImageLoader,
+  prefetchMenuModalImage,
+} from "@/lib/media/catalog-image";
 import { MENU_CARD_IMAGE_SIZES } from "@/lib/media/web-image";
 import { formatPriceIls } from "@/lib/price";
 import { isRemoteSvg } from "@/lib/storage-url";
@@ -16,25 +19,25 @@ type MenuItemCardProps = {
 
 function MenuItemImage({ item }: { item: PublicMenuItem }) {
   return (
-    <div className="relative aspect-square w-full bg-surface-warm">
+    <div className="bg-surface-warm relative aspect-[4/3] w-full">
       {item.imageSrc ? (
         <LazyFadeImage
           src={item.imageSrc}
           alt=""
           sizes={MENU_CARD_IMAGE_SIZES}
-          fit="fill"
+          fit="cover"
           loader={isRemoteSvg(item.imageSrc) ? undefined : catalogImageLoader}
           className={cn(!item.isAvailable && "opacity-60")}
           unoptimized={isRemoteSvg(item.imageSrc)}
         />
       ) : (
         <div
-          className="absolute inset-0 bg-gradient-to-br from-surface via-caramel-soft to-caramel"
+          className="from-surface via-caramel-soft to-caramel absolute inset-0 bg-gradient-to-br"
           aria-hidden="true"
         />
       )}
       {!item.isAvailable ? (
-        <span className="absolute start-1 bottom-1 rounded-pill bg-surface/90 px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide text-muted">
+        <span className="rounded-pill bg-surface/90 text-muted absolute start-1 bottom-1 px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide">
           לא זמין כרגע
         </span>
       ) : null}
@@ -53,28 +56,28 @@ export function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
   }
 
   return (
-    <InViewFade className="min-w-0">
-      <article className={cn(!item.isAvailable && "opacity-90")}>
+    <InViewFade className="h-full min-w-0">
+      <article className={cn("h-full", !item.isAvailable && "opacity-90")}>
         <button
           type="button"
           onClick={onSelect}
           onPointerDown={prefetchModalImage}
           onFocus={prefetchModalImage}
           aria-haspopup="dialog"
-          className="group flex w-full flex-col overflow-hidden rounded-[1.05rem] border border-foreground/20 text-start transition duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:active:scale-[0.98]"
+          className="menu-card group border-border bg-surface motion-safe:hover:shadow-lift focus-visible:ring-ring flex h-full w-full flex-col overflow-hidden rounded-[1rem] border text-start transition duration-300 ease-out focus-visible:ring-2 focus-visible:outline-none motion-safe:hover:-translate-y-1 motion-safe:active:scale-[0.98]"
         >
           <MenuItemImage item={item} />
-          <div className="flex flex-col justify-center gap-px border-t border-foreground/20 bg-surface px-1.5 py-1.5">
-            <h3 className="line-clamp-2 text-[0.7rem] leading-3.5 font-medium break-words text-foreground">
+          <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3">
+            <h3 className="text-foreground text-sm leading-5 font-semibold break-words">
               {item.name}
             </h3>
             {price ? (
-              <p className="text-[0.7rem] leading-3.5 font-semibold text-caramel-deep">
+              <p className="text-caramel-deep text-sm leading-5 font-semibold tabular-nums">
                 {price}
               </p>
             ) : null}
             {description ? (
-              <p className="line-clamp-1 text-[0.62rem] leading-3.5 text-muted">
+              <p className="text-muted line-clamp-1 text-[11px] leading-4">
                 {description}
               </p>
             ) : null}

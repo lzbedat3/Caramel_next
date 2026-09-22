@@ -16,9 +16,20 @@ import type { PublicMenuItem } from "@/lib/public-content";
 type MenuItemModalProps = {
   item: PublicMenuItem;
   onClose: () => void;
+  position: number;
+  total: number;
+  onPrevious?: () => void;
+  onNext?: () => void;
 };
 
-export function MenuItemModal({ item, onClose }: MenuItemModalProps) {
+export function MenuItemModal({
+  item,
+  onClose,
+  position,
+  total,
+  onPrevious,
+  onNext,
+}: MenuItemModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const price = formatPriceIls(item.price);
@@ -64,15 +75,18 @@ export function MenuItemModal({ item, onClose }: MenuItemModalProps) {
         }
       }}
     >
-      <article className="relative grid max-h-[min(40rem,92svh)] w-full overflow-hidden bg-espresso text-surface sm:max-h-[min(32rem,88svh)] sm:grid-cols-[minmax(0,1.05fr)_minmax(16rem,0.95fr)]">
-        <div className="relative aspect-[4/3] min-h-0 sm:aspect-auto sm:h-full">
+      <article className="bg-espresso text-surface relative grid max-h-[min(40rem,92svh)] w-full overflow-y-auto sm:max-h-[min(32rem,88svh)] sm:grid-cols-[minmax(0,1.05fr)_minmax(16rem,0.95fr)]">
+        <div
+          key={item.id}
+          className="relative aspect-[4/3] min-h-0 sm:aspect-auto sm:h-full"
+        >
           {imageSrc ? (
             <>
               <LazyFadeImage
                 src={imageSrc}
                 alt=""
                 sizes={MENU_CARD_IMAGE_SIZES}
-                fit="fill"
+                fit="cover"
                 fade={false}
                 eager
                 loader={remoteSvg ? undefined : catalogImageLoader}
@@ -83,7 +97,7 @@ export function MenuItemModal({ item, onClose }: MenuItemModalProps) {
                   src={imageSrc}
                   alt={item.name}
                   sizes={MENU_MODAL_IMAGE_SIZES}
-                  fit="fill"
+                  fit="cover"
                   eager
                   loader={catalogImageLoader}
                   fetchPriority="high"
@@ -97,32 +111,32 @@ export function MenuItemModal({ item, onClose }: MenuItemModalProps) {
             />
           )}
           <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-espresso/80 via-espresso/10 to-black/15 sm:bg-gradient-to-l sm:from-espresso/35 sm:via-transparent sm:to-black/20"
+            className="from-espresso/80 via-espresso/10 sm:from-espresso/35 pointer-events-none absolute inset-0 bg-gradient-to-t to-black/15 sm:bg-gradient-to-l sm:via-transparent sm:to-black/20"
             aria-hidden="true"
           />
           <button
             type="button"
             onClick={onClose}
-            className="absolute end-3 top-3 z-10 rounded-full bg-espresso/55 p-2.5 text-surface backdrop-blur-md transition hover:bg-espresso focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-caramel-soft sm:end-4 sm:top-4"
+            className="bg-espresso/55 text-surface hover:bg-espresso focus-visible:ring-caramel-soft absolute end-3 top-3 z-10 rounded-full p-2.5 backdrop-blur-md transition focus-visible:ring-2 focus-visible:outline-none sm:end-4 sm:top-4"
             aria-label="סגירה"
           >
             <CloseIcon />
           </button>
         </div>
 
-        <div className="relative flex flex-col justify-between gap-6 bg-gradient-to-b from-[#fff8ec] to-[#ffe7c2] px-6 py-6 text-foreground sm:px-8 sm:py-9">
+        <div className="text-foreground relative flex flex-col justify-between gap-6 bg-gradient-to-b from-[#fffdf9] to-[#eee8dc] px-6 py-6 sm:px-8 sm:py-9">
           <div>
-            <p className="text-[0.7rem] font-semibold tracking-[0.22em] text-caramel-deep">
+            <p className="text-caramel-deep text-[0.7rem] font-semibold tracking-[0.22em]">
               מטבח ללא גלוטן
             </p>
             <h2
               id={titleId}
-              className="font-display mt-3 text-3xl leading-tight text-espresso sm:text-4xl"
+              className="font-display text-espresso mt-3 text-3xl leading-tight sm:text-4xl"
             >
               {item.name}
             </h2>
             {description ? (
-              <p className="mt-4 max-w-sm text-base leading-7 text-muted">
+              <p className="text-muted mt-4 max-w-sm text-base leading-7">
                 {description}
               </p>
             ) : null}
@@ -130,18 +144,45 @@ export function MenuItemModal({ item, onClose }: MenuItemModalProps) {
 
           <div className="flex items-end justify-between gap-4">
             {price ? (
-              <p className="font-display text-3xl leading-none text-caramel-deep sm:text-4xl">
+              <p className="font-display text-caramel-deep text-3xl leading-none sm:text-4xl">
                 {price}
               </p>
             ) : (
               <span />
             )}
             {!item.isAvailable ? (
-              <span className="rounded-pill bg-closed-soft px-3 py-1.5 text-xs font-medium tracking-wide text-closed">
+              <span className="rounded-pill bg-closed-soft text-closed px-3 py-1.5 text-xs font-medium tracking-wide">
                 לא זמין כרגע
               </span>
             ) : null}
           </div>
+          <nav
+            aria-label="דפדוף במנות"
+            className="border-border flex items-center justify-between gap-3 border-t pt-4"
+          >
+            <button
+              type="button"
+              onClick={onPrevious}
+              disabled={!onPrevious}
+              className="border-border hover:bg-caramel-soft focus-visible:outline-caramel rounded-full border px-4 py-2 text-sm transition focus-visible:outline-2 disabled:opacity-30"
+            >
+              → הקודמת
+            </button>
+            <span
+              className="text-muted text-xs tabular-nums"
+              aria-live="polite"
+            >
+              {position} / {total}
+            </span>
+            <button
+              type="button"
+              onClick={onNext}
+              disabled={!onNext}
+              className="bg-espresso text-surface hover:bg-caramel-deep focus-visible:outline-caramel rounded-full px-4 py-2 text-sm transition focus-visible:outline-2 disabled:opacity-30"
+            >
+              הבאה ←
+            </button>
+          </nav>
         </div>
       </article>
     </dialog>
