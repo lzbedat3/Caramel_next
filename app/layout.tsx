@@ -38,6 +38,15 @@ export const metadata: Metadata = {
     apple: [{ url: "/Caramel_Assets/apple-touch-icon.png", sizes: "180x180" }],
   },
   openGraph: {
+    images: [
+      {
+        url: "/Caramel_Assets/social-preview-v1.png",
+        width: 1200,
+        height: 630,
+        alt: "Caramel — גן עדן לציליאקים",
+        type: "image/png",
+      },
+    ],
     type: "website",
     locale: siteConfig.ogLocale,
     siteName: siteConfig.nameLocalized,
@@ -46,6 +55,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    images: ["/Caramel_Assets/social-preview-v1.png"],
     title: siteConfig.nameLocalized,
     description: siteConfig.description,
   },

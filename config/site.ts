@@ -1,4 +1,4 @@
-const FALLBACK_SITE_URL = "http://localhost:3000";
+const FALLBACK_SITE_URL = "https://caramel.darb.co.il";
 
 export function getSiteUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -12,6 +12,13 @@ export function getSiteUrl(): string {
       return FALLBACK_SITE_URL;
     }
 
+    // Never publish local development addresses to social crawlers in production.
+    if (
+      process.env.NODE_ENV === "production" &&
+      ["localhost", "127.0.0.1", "[::1]", "0.0.0.0"].includes(parsed.hostname)
+    ) {
+      return FALLBACK_SITE_URL;
+    }
     const path = parsed.pathname.replace(/\/+$/, "");
     return `${parsed.origin}${path}`;
   } catch {
@@ -26,8 +33,7 @@ export const siteConfig = {
   dir: "rtl" as const,
   timeZone: "Asia/Jerusalem",
   ogLocale: "he_IL",
-  description:
-    "האתר הציבורי של קרמל — תפריט, שעות וסיפור המסעדה. התוכן מגיע ממערכת הניהול.",
+  description: "גן עדן לציליאקים — התפריט של קרמל, שעות פתיחה ודרכי הגעה.",
   url: getSiteUrl(),
 } as const;
 

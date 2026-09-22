@@ -91,8 +91,7 @@ export function resolvePublicSeo(input: PublicSeoInput): {
 
   return {
     title: seoTitle || derivedSeoTitle(input.profile),
-    description:
-      seoDescription || derivedSeoDescription(input.profile),
+    description: seoDescription || derivedSeoDescription(input.profile),
     isIndexable: true,
   };
 }
@@ -122,7 +121,8 @@ export function buildPublicMetadata(input: PublicSeoInput): Metadata {
       description,
       images: [
         {
-          url: "/opengraph-image",
+          url: "/Caramel_Assets/social-preview-v1.png",
+          type: "image/png",
           width: 1200,
           height: 630,
           alt: ogImageAlt,
@@ -135,7 +135,8 @@ export function buildPublicMetadata(input: PublicSeoInput): Metadata {
       description,
       images: [
         {
-          url: "/opengraph-image",
+          url: "/Caramel_Assets/social-preview-v1.png",
+          type: "image/png",
           width: 1200,
           height: 630,
           alt: ogImageAlt,
