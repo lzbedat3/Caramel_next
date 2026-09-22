@@ -490,9 +490,9 @@ body {
   scrollbar-color: #bca57f transparent;
   scroll-padding-inline: 1rem;
 }
-.dish-rail:focus-visible {
-  outline: 2px solid var(--caramel);
-  outline-offset: -3px;
+/* Focus is shown on dish cards and navigation buttons, not the rail frame. */
+.dish-rail:focus {
+  outline: none;
 }
 .rail-arrow {
   display: grid;
