@@ -97,6 +97,8 @@ export function Splash({ brand, onDrain, onDone }: SplashProps) {
       2.45,
     );
     P.shiftBlob(pool, poolTop - pool.topY);
+    // The name sits at the pool's true vertical centre, whatever its shape.
+    el.style.setProperty("--pool-y", `${(pool.topY + pool.botY) / 2}px`);
 
     let drained = false;
     let finished = false;
