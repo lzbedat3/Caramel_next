@@ -1561,13 +1561,14 @@ html:has(.pour)::-webkit-scrollbar {
   position: absolute;
   left: 0;
   right: 0;
-  top: 46%;
+  top: var(--pool-y, 50%);
   display: flex;
   justify-content: center;
-  align-items: baseline;
+  align-items: center;
   gap: 0.3em;
   direction: ltr;
-  transform: translateY(calc(-50% + 30px));
+  transform: translateY(-50%);
+  line-height: 1;
   font:
     700 34px/1 var(--font-ubuntu),
     var(--font-heebo),

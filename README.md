@@ -1,232 +1,125 @@
-# Caramel
+# Caramel · The Pour
 
-Caramel is a production-oriented restaurant menu and content-management web application. It delivers a public, SEO-oriented restaurant site and an authenticated administration portal. Restaurant identity, menu catalog, media, hours, and SEO copy are stored in Supabase; the application does not hardcode business content.
+A restaurant menu that is not a list. A ribbon of liquid caramel pours down the page as the guest scrolls, wraps each dish and lights it up. Built for one real restaurant (Caramel, a gluten-free kitchen in Akko) and designed as the first concept of a menu-experience platform.
 
-## Overview
+**Live:** [caramel.darb.co.il](https://caramel.darb.co.il)
 
-The public site is a Hebrew RTL restaurant experience called "The Pour": a ribbon of liquid caramel flows down the page as the guest scrolls, wraps each dish and lights it up. It shows the profile, categories, dishes with availability and pricing, a "my table" list with a summary view, location (including Waze), collapsed weekly hours with open/closed state, and social links. Content is loaded from PostgreSQL at request time.
+<p>
+  <img src="docs/screenshots/splash.jpg" width="150" alt="Splash: the first pour">
+  <img src="docs/screenshots/opening.jpg" width="150" alt="The opening: caramel pours from the brand into the first category">
+  <img src="docs/screenshots/dish.jpg" width="150" alt="A dish opened in its caramel frame">
+  <img src="docs/screenshots/my-table.jpg" width="150" alt="My table with quantities and total">
+  <img src="docs/screenshots/ending.jpg" width="150" alt="The ending: directions, hours, social links">
+  <img src="docs/screenshots/admin.jpg" width="150" alt="Admin portal, dish editor">
+</p>
 
-The admin portal is a protected App Router area. Signed-in members of `private.admin_users` can manage the same content, including sort order, visibility, availability, media uploads, overnight opening intervals, and SEO fields. Mutations run as authenticated server actions; the browser never uses a service-role key.
+## What it does
 
-Public reads are gated on an active restaurant profile. When the profile is inactive or missing, the public UI stays empty of catalog data and search engines are instructed not to index.
+**For guests (mobile first, Hebrew RTL):**
 
-## Architecture
+- One continuous scene instead of pages and cards: the caramel stream is laid through the menu, each dish sits in a caramel ring, each category is a pool, and the whole thing responds to native scroll with a viscous lag.
+- Tap a dish to open it; add it to "my table"; a summary view in large print for showing the waiter. The table survives reloads and is reconciled against the live menu.
+- Address, Waze, phone, collapsed opening hours with open/closed state, social links.
+- Installable PWA: the last menu seen opens offline, with a banner that prices may be out of date.
 
-### Frontend
+**For the restaurant (admin portal):** profile, categories, dishes with photos and availability, opening hours with overnight intervals, social links, SEO copy. Server actions behind Supabase Row Level Security; the browser never sees a privileged key.
 
-- Next.js 16 (App Router)
-- React 19
-- TypeScript (strict)
-- Tailwind CSS v4
-- Server Components by default
-- Client Components limited to interactive surfaces (auth forms, media players, menus, admin editors)
+**Nothing restaurant-specific lives in components.** Content comes from PostgreSQL, interface text from `lib/i18n` (Hebrew, Arabic, English), brand values from `config/site.ts`, and the caramel itself from `config/pour-theme.ts`. Swapping the theme's colours turns the pour into olive oil or chocolate for the next restaurant.
 
-Route groups isolate the public site (`app/(public)`), the CMS (`app/admin`), and auth callbacks (`app/auth`). `proxy.ts` refreshes the Supabase cookie session.
+## Engineering highlights
 
-### Backend / data
+### The pour engine (`features/pour/engine`)
 
-- Supabase (PostgreSQL, Auth, Storage)
-- Row Level Security on application tables and storage objects
-- SQL migrations under `supabase/migrations/`
-- Generated TypeScript types in `types/database.ts`
+- **Framework-free kernel.** `pour.js` receives DOM elements, a theme and callbacks, and returns `{ destroy, relayout, categoryTop }`. React (`pour-stage.tsx`) renders the semantic list on the server and only enhances it. The painter (`createPainter`) is shared with the splash and the category pill, so every caramel surface in the app is the same material.
+- **Path layout.** The stream is a sampled polyline with normals; dishes are arcs on it, categories are organic blobs. Positions are computed per viewport width and written to the DOM once per layout.
+- **Static strips plus a moving head.** The caramel below the pour front is painted once into 1024px canvas strips and revealed with compositor-only clips; only the last stretch and the drip head are redrawn per frame. The follow is a pair of exponential followers plus a slow one that makes the last pixels ooze in (`math.ts`, unit tested).
+- **Progressive by design.** Without scripts, or if the engine throws (for example canvas memory limits on long menus), the page falls back to a plain, fully lit list through CSS keyed on a single attribute. Reduced motion shows the whole stream poured and every dish lit.
 
-Application data access lives in `services/` (read models) and `features/*/actions.ts` (writes). Domain helpers sit in `lib/`.
+### Media
 
-### Deployment
+- Dish photos go through `next/image` as WebP with sizes matched to real use; ring photos load eagerly so nothing arrives late while scrolling; the dialog shows the already-loaded ring photo instantly and prefetches the large one as dishes light up.
+- Dishes without a photo get a lettered caramel ring; a photo that fails falls back to the same.
 
-Intended deployment is Vercel for the Next.js app and a hosted Supabase project for database, auth, and storage. Required public environment variables are listed in `.env.example`.
+### PWA
 
-## Main application areas
+- Service worker with explicit rules: menu page network-first with the last complete copy as fallback (a backend hiccup never replaces it), build assets stale-while-revalidate, optimised images cache-first with a cap, admin and auth never cached. On the first visit the page hands the worker what it already loaded, so offline works without a second visit.
+- Install is offered as a quiet link in the page's ending, not a banner.
 
-### Public restaurant experience
+### Typography and i18n
 
-- Restaurant profile (name, subtitle, about, phone, address, Waze URL) from Supabase
-- The pour: a canvas engine (`features/pour/engine`) lays a caramel path through the server-rendered dish list and lights each dish as the stream reaches it; without scripts the list stays readable
-- Category pools and a sticky category pill that follows the scroll position
-- Dish dialog with description, price and "add to my table"; unavailable dishes are shown but cannot be added; dishes without a photo show a lettered ring
-- "My table": quantities and total kept in the browser (`localStorage`), reconciled with the current menu on load, with a large-print summary view; nothing is sent anywhere
-- Ending with address, Waze, phone, collapsed weekly hours, social links and the platform credit
-- Open/closed status derived from opening hours in `Asia/Jerusalem`, including overnight intervals
-- Interface text from `lib/i18n` (Hebrew, Arabic, English); brand values from `config/site.ts` and `config/pour-theme.ts`
-- Dynamic metadata, Open Graph image, favicon, sitemap, robots, and Restaurant JSON-LD
+- Three scripts, three faces: Ubuntu for Latin and numbers, Heebo for Hebrew, Cairo for Arabic, resolved by unicode range rather than per-element rules. One subtle bug worth knowing: `next/font` attaches a synthetic Arial-based fallback to each face, and that fallback owns Hebrew glyphs, so an "Ubuntu, Heebo" stack never reached Heebo until Ubuntu was pinned to its Latin face.
+- Dictionaries are checked by a test for identical keys across locales; prices are formatted with `Intl.NumberFormat`.
 
-### Administration portal
+### Security and data
 
-Authenticated administrators can manage:
+- Supabase with RLS on every table and storage bucket; public reads additionally require an active restaurant profile; admin membership lives in a private schema and is checked server-side.
+- Open redirects blocked on auth flows; admin and auth routes are `noindex` and never cached by the worker.
 
-- Restaurant profile and logo
-- Hero images and videos (order, visibility, alt text)
-- Categories (create, update, delete, sort, images)
-- Menu items (create, update, delete, category assignment, sort per category, visibility, availability, price, images, descriptions)
-- Opening hours (multiple intervals per weekday, including intervals that cross midnight)
-- Social links (platform, URL, visibility, order)
-- SEO title and description overrides
+## Stack
 
-## Security
+Next.js 16 (App Router, Server Components), React 19, TypeScript (strict), Tailwind CSS v4, Supabase (PostgreSQL, Auth, Storage), Vitest, Playwright for browser checks, Vercel.
 
-- RLS policies on public tables; writes require `private.is_admin()`
-- Admin membership lives in `private.admin_users` (not exposed through the Data API)
-- `public.current_user_is_admin()` RPC for server-side checks
-- Public `SELECT` policies additionally require an active restaurant profile
-- Browser and server clients use the publishable (anon) key only
-- Storage policies: public read on restaurant buckets; insert/update/delete restricted to admins; MIME and size limits on buckets
-- Client-side upload validation before Storage writes; orphaned objects cleaned up on failed writes where implemented
-- Internal redirects validated (`lib/safe-redirect.ts`) to block open redirects
-- `/admin` and `/auth` are `noindex, nofollow`
-- Session refresh in `proxy.ts` and authorization checks in the protected CMS layout
+## Project structure
 
-Do not place the service role key in frontend environment variables.
-
-## Database
-
-Migrations are applied in timestamp order. Core relations:
-
-| Relation              | Role                                                                              |
-| --------------------- | --------------------------------------------------------------------------------- |
-| `restaurant_profile`  | Singleton identity, contact, about, logo, active flag                             |
-| `opening_hours`       | Weekday intervals (`start_time`, `end_time`; overnight when end ≤ start)          |
-| `social_links`        | Platform, URL, visibility, sort order                                             |
-| `hero_media`          | Image or video slides, sort order, visibility                                     |
-| `categories`          | Menu sections, images, sort order                                                 |
-| `menu_items`          | Dishes; `category_id` → `categories`; price, availability, visibility, sort order |
-| `site_settings`       | SEO title/description overrides                                                   |
-| `private.admin_users` | Auth user ids allowed to administer                                               |
-
-`menu_items.category_id` is a foreign key to `categories`. Public menu rendering groups items by category sort order, then item sort order.
-
-After schema changes, regenerate types:
-
-```bash
-npm run db:types          # local Supabase
-npm run db:types:linked   # linked hosted project
+```
+app/                      routes: (public) menu, admin portal, auth callbacks, manifest, sitemap
+features/pour/            the public experience
+  engine/                 pour.js (layout, painter, motion), math.ts, types
+  table/                  "my table" reducer, reconciliation, storage
+  pour-menu.tsx           server-rendered semantic page
+  pour-stage.tsx          client: mounts the engine, owns table and dialog state
+  category-nav.tsx        sticky pill with the caramel pool
+  dish-dialog.tsx         expanded dish
+  my-table.tsx            pill, sheet, summary view
+  ending.tsx              directions, hours, social, credit, dedication
+  splash.tsx              the first pour
+features/admin/           admin editors and server actions
+services/                 read models (public home, SEO, admin dashboard)
+lib/                      domain helpers: opening hours, prices, i18n, SEO, Supabase clients
+config/                   site, pour theme, routes, storage buckets
+styles/                   globals.css (tokens shared by admin and public), pour.css
+public/sw.js              service worker
+supabase/migrations/      schema, RLS, storage policies
+docs/superpowers/         design spec, implementation plan, reference prototype
 ```
 
-Bootstrap the first admin by inserting the Auth user UUID into `private.admin_users` (SQL editor or a privileged session). Subsequent admin checks use `private.is_admin()`.
+## Running locally
 
-## Media / storage
-
-Public buckets (read for everyone; write for admins):
-
-- `branding` — restaurant logo (includes SVG)
-- `hero` — hero images and video (larger size limit)
-- `categories` — category images
-- `menu-items` — dish images
-
-`next/image` is configured for Supabase public object URLs. Uploads go through the publishable client with bucket MIME/size constraints.
-
-## SEO
-
-- `generateMetadata` on the public home from profile + `site_settings`
-- Canonical URL from `NEXT_PUBLIC_SITE_URL`
-- Open Graph and Twitter card fields; generated OG image and icon
-- `app/sitemap.ts` and `app/robots.ts`
-- Restaurant JSON-LD (`features/public/seo/restaurant-json-ld.tsx`) including hours and social URLs when present
-- Inactive or missing restaurant profile → `noindex`
-
-Admin and auth layouts force `robots: { index: false, follow: false }`.
-
-## Performance
-
-- Server Components for data fetching on public and admin pages
-- Client islands for carousel, menu interactions, and forms
-- `next/image` with `sizes` tuned to card and hero breakpoints
-- Lazy loading for below-the-fold imagery; priority loading for LCP (first hero slide, logo)
-- Hero video plays after mount; respects `prefers-reduced-motion`
-- Public home is `force-dynamic` so catalog edits appear without a static snapshot
-- Server actions call `revalidatePath` after writes
-- Dashboard and shell loaders share queries where possible (`services/admin-dashboard.ts`)
-
-## Accessibility
-
-- Semantic landmarks, skip link to main content
-- Keyboard-operable category rail, menu cards, and dialogs
-- Visible focus rings on interactive controls
-- `prefers-reduced-motion` disables non-essential animation
-- Dialogs use native `<dialog>` with labelled titles
-- RTL layout (`dir="rtl"`, `lang="he"`)
-
-## Local development
-
-Requirements: Node.js 20.9 or newer, npm.
+Requirements: Node.js 20.9 or newer.
 
 ```bash
-git clone <repository-url>
-cd Caramel_next
 npm install
-cp .env.example .env.local
-```
-
-Set in `.env.local` (no trailing slash on the site URL):
-
-| Variable                               | Purpose                                                            |
-| -------------------------------------- | ------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SITE_URL`                 | Canonical origin for metadata, sitemap, robots, and auth redirects |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase project URL                                               |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key                                             |
-
-```bash
+cp .env.example .env.local   # NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 npm run dev
 ```
 
-The public site does not require a session. The CMS is available to authorized operators.
+The public menu needs no session. The admin portal is at `/portal`; the first admin is bootstrapped by inserting an Auth user id into `private.admin_users`.
 
-## Database development
+Service workers register only in production: `npm run build && npm run start`, then test on localhost or over HTTPS.
 
-```bash
-npm run db:start    # local Supabase stack
-npm run db:stop
-npm run db:reset    # apply migrations locally
-npm run db:types
-npm run db:types:linked
-```
+Database: migrations are under `supabase/migrations/`; `npm run db:start`, `db:reset`, `db:types` work against the local Supabase stack, `db:types:linked` against a linked project.
 
-Migrations live in `supabase/migrations/`. Use the Supabase CLI (`supabase db push`) against a linked project to apply them to hosted Postgres.
-
-## Quality checks
-
-Unit tests cover the pour's motion maths, the "my table" logic, price formatting and the dictionaries. Use:
+## Quality
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
+npm run lint        # eslint, next core-web-vitals + typescript
+npm run typecheck   # tsc --noEmit, strict with noUncheckedIndexedAccess
+npm test            # vitest: pour motion maths, table logic, price parts, dictionaries
 npm run build
 ```
 
-Optional formatting:
+Browser checks are run with Playwright against a production build at 320, 390 and 1280px wide, in Chromium and WebKit, including no-script, reduced-motion and offline passes.
 
-```bash
-npm run format:check
-npm run format
-```
+## How it was built
 
-## Project status
+The concept was chosen from a set of interactive prototypes tested on a phone (a conveyor belt, a deck of cards, a printed receipt, a 3D drum, and the pour, among others), then specified before implementation: `docs/superpowers/specs/2026-10-02-pour-menu-design.md` is the design, `docs/superpowers/plans/2026-10-02-pour-menu.md` the plan, and `docs/superpowers/specs/2026-10-02-pour-prototype.html` the approved prototype whose arithmetic the engine keeps exactly.
 
-This repository is the v1 application foundation: public restaurant experience, CMS, auth, RLS, storage, and SEO. Live restaurant copy and media are managed through the admin portal against a Supabase project.
+## Roadmap
 
-### Progressive web app
+- Ordering and table numbers, built on "my table".
+- Ten more menu concepts and a catalogue page where a restaurant owner picks the concept for their business (the Darb Rest platform).
+- Translated dish content.
 
-The public menu includes a web manifest with Apple/Android/maskable icons from
-`public/Caramel_Assets` and dark theme colours.
+## Credits
 
-Service workers register only in production (`npm run build` then
-`npm run start`). Test over HTTPS or localhost. Supported Chromium browsers expose
-an install action when eligible; iOS users receive Safari home-screen instructions.
-
-Caching rules (`public/sw.js`):
-
-- The menu page is fetched from the network first; when offline, the last copy
-  seen is served with a banner saying prices may be out of date. With nothing
-  cached, a branded offline page is shown.
-- Build assets and brand files are served from cache and refreshed in the background.
-- Optimised dish photos are cached first, capped at 120 entries.
-- Admin, sign-in, auth routes and non-GET requests are never cached.
-- On the first visit the page hands the worker what it already loaded, so the
-  menu works offline without a second visit.
-
-New worker versions wait for the visitor to accept the refresh prompt. Change
-`VERSION` in `public/sw.js` whenever changing the caching rules or the offline page.
-
-Validation: check installation on Android Chrome and iOS Safari after deployment;
-check offline reload after one successful online visit; check reduced motion and
-new-worker update acceptance. Desktop embedded previews may not offer installation.
+Built with love by Lama & Nour · [Darb Rest](https://darb.co.il)
