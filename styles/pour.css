@@ -16,6 +16,9 @@ html:has(.pour)::-webkit-scrollbar {
   --amber: #e9a43a;
   --gold: #f6c062;
   --burnt: #2a1104;
+  /* Latin only: the literal face has a Latin unicode-range, so Hebrew and Arabic
+     fall through to Heebo and Cairo instead of a system fallback. */
+  --font-ubuntu: Ubuntu;
   position: relative;
   flex: 1;
   min-height: 100dvh;
@@ -81,6 +84,17 @@ html:has(.pour)::-webkit-scrollbar {
   }
   #stage[data-ready] {
     opacity: 1;
+  }
+  /* If the engine has not taken over within a moment (scripts blocked, chunk failed,
+     engine error), the plain list fades in on its own. */
+  #stage:not([data-pour]) {
+    animation: pour-show 0.4s ease 2.2s both;
+  }
+  @media (scripting: none) {
+    #stage:not([data-pour]) {
+      animation: none;
+      opacity: 1;
+    }
   }
 
   /* ---------- caramel layers ---------- */
@@ -240,7 +254,7 @@ html:has(.pour)::-webkit-scrollbar {
       sans-serif;
     letter-spacing: 0.34em;
     text-indent: 0.34em;
-    color: rgba(245, 232, 210, 0.3);
+    color: rgba(245, 232, 210, 0.58);
     margin-bottom: 7px;
     transition: color 0.5s ease;
   }
@@ -251,7 +265,7 @@ html:has(.pour)::-webkit-scrollbar {
       var(--font-cairo),
       sans-serif;
     letter-spacing: -0.005em;
-    color: rgba(245, 232, 210, 0.34);
+    color: rgba(245, 232, 210, 0.62);
     transition:
       color 0.45s ease,
       text-shadow 0.45s ease,
@@ -304,8 +318,8 @@ html:has(.pour)::-webkit-scrollbar {
     height: 100%;
     object-fit: cover;
     display: block;
-    opacity: 0;
-    transition: opacity 0.6s ease;
+    opacity: 1;
+    transition: opacity 0.25s ease;
   }
   .ph img[data-ok] {
     opacity: 1;
@@ -371,7 +385,7 @@ html:has(.pour)::-webkit-scrollbar {
     position: absolute;
     top: 0;
     transform: translateY(-50%);
-    opacity: 0.3;
+    opacity: 0.62;
     transition: opacity 0.8s ease;
     pointer-events: none;
   }
@@ -454,7 +468,7 @@ html:has(.pour)::-webkit-scrollbar {
       800 38px/1 var(--font-heebo),
       var(--font-cairo),
       sans-serif;
-    color: rgba(245, 232, 210, 0.3);
+    color: rgba(245, 232, 210, 0.62);
     transition:
       color 0.5s ease,
       text-shadow 0.5s ease;
@@ -469,7 +483,7 @@ html:has(.pour)::-webkit-scrollbar {
       sans-serif;
     letter-spacing: 0.34em;
     text-indent: 0.34em;
-    color: rgba(245, 232, 210, 0.25);
+    color: rgba(245, 232, 210, 0.55);
     transition: color 0.5s ease;
   }
   #foot[data-lit] .bye h2 {
@@ -518,52 +532,17 @@ html:has(.pour)::-webkit-scrollbar {
   #nav.show {
     transform: translate(-50%, 0);
   }
-  #nav .goo {
+  #nav canvas {
     position: absolute;
-    inset: 0;
-    filter: url(#goo);
+    left: 0;
+    top: 0;
     pointer-events: none;
-  }
-  #nav .goo i {
-    position: absolute;
-    display: block;
-    background: #d98c1f;
-  }
-  #nav .goo .b1 {
-    top: 5px;
-    height: 34px;
-    border-radius: 17px;
-    left: 0;
-    width: 40px;
-    background: linear-gradient(180deg, #eaa43a 0%, #cf801c 50%, #a8580d 100%);
-    transition:
-      left 0.62s cubic-bezier(0.34, 1.32, 0.5, 1),
-      width 0.62s cubic-bezier(0.34, 1.32, 0.5, 1);
-  }
-  #nav .goo .b2 {
-    top: 12px;
-    height: 20px;
-    border-radius: 10px;
-    left: 0;
-    width: 30px;
-    background: #c97a17;
-    transition:
-      left 0.95s cubic-bezier(0.3, 0.9, 0.3, 1),
-      width 0.95s cubic-bezier(0.3, 0.9, 0.3, 1);
-  }
-  #nav .goo .dp {
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    top: 15.5px;
-    background: #cf8320;
-    margin-left: -6.5px;
   }
   #nav button {
     position: relative;
     z-index: 1;
     height: 34px;
-    padding: 0 13px 0 13px;
+    padding: 0 16px;
     border: 0;
     background: none;
     cursor: pointer;
@@ -573,8 +552,7 @@ html:has(.pour)::-webkit-scrollbar {
       sans-serif;
     color: rgba(245, 232, 210, 0.74);
     white-space: nowrap;
-    padding-inline-start: 27px;
-    transition: color 0.4s ease;
+    transition: color 0.35s ease;
   }
   #nav button.on {
     color: #2a1003;
@@ -1262,11 +1240,10 @@ html:has(.pour)::-webkit-scrollbar {
   }
 
   /* Without the engine (script blocked or failed) the menu is a plain, fully lit list. */
-  #stage[data-fallback] {
-    opacity: 1;
+  #stage:not([data-pour]) {
     overflow: visible;
   }
-  #stage[data-fallback]
+  #stage:not([data-pour])
     :is(
       #hero,
       .eyebrow,
@@ -1274,7 +1251,6 @@ html:has(.pour)::-webkit-scrollbar {
       .tag,
       .pool,
       .dish,
-      .ph,
       .tx,
       #foot,
       #foot .bye,
@@ -1283,55 +1259,63 @@ html:has(.pour)::-webkit-scrollbar {
     position: static;
     transform: none;
   }
-  #stage[data-fallback] :is(#rib, #track) {
+  #stage:not([data-pour]) :is(#rib, #track) {
     display: none;
   }
-  #stage[data-fallback] #hero {
+  #stage:not([data-pour]) #hero {
     padding: 36px 20px 8px;
     text-align: center;
     pointer-events: auto;
   }
-  #stage[data-fallback] .tag {
+  #stage:not([data-pour]) .tag {
     margin-top: 18px;
     text-align: center;
   }
-  #stage[data-fallback] .pool {
+  #stage:not([data-pour]) .pool {
     padding: 40px 0 10px;
   }
-  #stage[data-fallback] .pool h2 {
+  #stage:not([data-pour]) .pool h2 {
     color: var(--gold);
     transform: none;
   }
-  #stage[data-fallback] .dish {
+  #stage:not([data-pour]) .dish {
     height: auto;
     display: flex;
     align-items: center;
     gap: 18px;
     padding: 10px 20px;
   }
-  #stage[data-fallback] .ph {
+  #stage:not([data-pour]) .ph {
     position: relative;
     flex: none;
     width: 124px;
     height: 108px;
+    transform: none;
   }
-  #stage[data-fallback] .ph img {
+  #stage:not([data-pour]) .tx > div {
+    transform: none;
+  }
+  #stage:not([data-pour]) .tx {
+    flex: 1;
+    min-width: 0;
+  }
+  #stage:not([data-pour]) .ph img {
     opacity: 1;
   }
-  #stage[data-fallback] .ph .dim {
+  #stage:not([data-pour]) .ph .dim {
     opacity: 0;
   }
-  #stage[data-fallback] .tx {
+  #stage:not([data-pour]) .tx {
     opacity: 1;
     text-align: start;
   }
-  #stage[data-fallback] #foot .bye {
+  #stage:not([data-pour]) #foot .bye {
     padding: 48px 0 12px;
   }
-  #stage[data-fallback] #foot .bye h2 {
+  #stage:not([data-pour]) #foot .bye h2 {
     color: var(--gold);
   }
-  #stage[data-fallback] #foot .sig {
+  #stage:not([data-pour]) #foot .sig {
     padding-bottom: 120px;
     pointer-events: auto;
   }
@@ -1524,26 +1508,6 @@ html:has(.pour)::-webkit-scrollbar {
   }
 }
 
-/* While the menu loads: the brand breathing on the dark page. */
-.pour .loading-brand {
-  position: absolute;
-  inset: 56px 0 auto;
-  margin: 0;
-  text-align: center;
-  font:
-    700 41px/1 var(--font-ubuntu),
-    sans-serif;
-  letter-spacing: -0.035em;
-  color: var(--cream);
-  opacity: 0.5;
-  animation: pour-breathe 1.6s ease-in-out infinite alternate;
-}
-@keyframes pour-breathe {
-  to {
-    opacity: 0.9;
-  }
-}
-
 /* Many categories on a narrow phone: the pill scrolls sideways instead of clipping. */
 .pour #nav {
   max-width: calc(100vw - 16px);
@@ -1554,10 +1518,171 @@ html:has(.pour)::-webkit-scrollbar {
 .pour #nav::-webkit-scrollbar {
   display: none;
 }
-.pour #nav .goo {
-  inset: 0 auto 0 0;
-  min-width: 100%;
-}
 .pour #nav button {
   flex: none;
+}
+
+@keyframes pour-show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.pour .tx h3 {
+  overflow-wrap: anywhere;
+}
+
+/* Dialog photo: the ring's photo shows at once, the large one fades in over it. */
+.pour #xf img.hi {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.pour #xf img.hi[data-ok] {
+  opacity: 1;
+}
+
+/* Splash: the first pour. A stream of caramel runs down the dark screen into a pool
+   that carries the name; the page fades in beneath it. */
+.pour .splash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: #0d0806;
+  cursor: pointer;
+  animation: splash-fade 0.45s ease 1.75s both;
+}
+.pour .splash-art {
+  position: absolute;
+  inset: 0;
+}
+.pour .splash-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 46%;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.3em;
+  direction: ltr;
+  transform: translateY(calc(-50% + 30px));
+  font:
+    700 34px/1 var(--font-ubuntu),
+    var(--font-heebo),
+    var(--font-cairo),
+    sans-serif;
+  letter-spacing: -0.03em;
+  color: #2a1003;
+  text-shadow: 0 1px 0 rgba(255, 221, 150, 0.5);
+  opacity: var(--name, 0);
+}
+.pour .splash-name span:nth-child(2) {
+  font-family: var(--font-heebo), var(--font-cairo), sans-serif;
+  font-weight: 800;
+}
+@keyframes splash-fade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* The dedication under the rights line. */
+.pour #lnk .ded {
+  width: 100%;
+  margin-top: 10px;
+  font:
+    400 13px/1.7 var(--font-heebo),
+    var(--font-ubuntu),
+    var(--font-cairo),
+    sans-serif;
+  color: var(--muted);
+}
+.pour #lnk .ded p {
+  margin: 0;
+}
+.pour #lnk .ded b {
+  font-weight: 600;
+  color: var(--cream);
+}
+.pour #lnk .ded .to {
+  max-width: 300px;
+  margin: 6px auto 0;
+  font-size: 12.5px;
+  color: var(--gold);
+  text-wrap: pretty;
+}
+.pour #lnk .ded .heart {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  vertical-align: -3px;
+  margin: 0 1px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  animation: heart-beat 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes heart-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  12% {
+    transform: scale(1.18);
+  }
+  24% {
+    transform: scale(1);
+  }
+  36% {
+    transform: scale(1.1);
+  }
+  48% {
+    transform: scale(1);
+  }
+}
+
+/* Install: a quiet link in the ending instead of a floating card. */
+.pour #lnk .inst:empty {
+  display: none;
+}
+.pour #lnk .pwa-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.pour #lnk .pwa-inline button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  box-shadow: inset 0 0 0 1px rgba(245, 232, 210, 0.18);
+  color: var(--muted);
+  font:
+    500 13.5px/1 var(--font-heebo),
+    var(--font-ubuntu),
+    var(--font-cairo),
+    sans-serif;
+  cursor: pointer;
+}
+.pour #lnk .pwa-inline button svg {
+  width: 16px;
+  height: 16px;
+  color: var(--amber);
+}
+.pour #lnk .pwa-inline p {
+  margin: 0;
+  max-width: 280px;
+  font:
+    400 12.5px/1.6 var(--font-heebo),
+    var(--font-ubuntu),
+    var(--font-cairo),
+    sans-serif;
+  color: var(--muted);
 }

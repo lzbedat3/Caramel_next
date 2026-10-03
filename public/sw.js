@@ -66,8 +66,13 @@ async function menuPage(request) {
   const cache = await caches.open(PAGES);
   try {
     const response = await fetch(request);
+    // A page rendered during a backend hiccup has no menu; it must not replace the last good copy.
     if (response.ok) {
-      await cache.put("/", response.clone());
+      const copy = response.clone();
+      const html = await copy.clone().text();
+      if (html.includes('data-menu="complete"')) {
+        await cache.put("/", copy);
+      }
     }
     return response;
   } catch {

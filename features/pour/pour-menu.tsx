@@ -111,6 +111,7 @@ export function PourMenu({
       }))}
       strings={strings}
       storageKey={`pour-table:${siteConfig.url}`}
+      brand={brand}
     >
       <a
         href="#stage"
@@ -121,7 +122,7 @@ export function PourMenu({
       <noscript>
         <style>{".pour #stage{opacity:1}"}</style>
       </noscript>
-      <main id="stage">
+      <main id="stage" data-menu={dishes.length > 0 ? "complete" : undefined}>
         <svg id="track" aria-hidden="true">
           <path
             id="trk"
@@ -196,7 +197,11 @@ export function PourMenu({
                           width={340}
                           height={255}
                           sizes={RING_SIZES}
+                          quality={70}
                           priority={priority}
+                          // Every ring photo loads straight away (about 15 KB each as WebP),
+                          // so nothing appears late while the guest scrolls.
+                          loading={priority ? undefined : "eager"}
                           unoptimized={isRemoteSvg(item.imageSrc)}
                         />
                       ) : null}

@@ -28,6 +28,8 @@ export type PourElements = {
 export type PourCallbacks = {
   onActiveCategory(index: number): void;
   onPastOpening(past: boolean): void;
+  /** The engine gave up (for example no canvas memory); the page shows its plain list. */
+  onError?(error: unknown): void;
 };
 
 export type PourHandle = {

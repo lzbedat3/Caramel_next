@@ -50,6 +50,11 @@ export function reconcile(
   state: TableState,
   menu: { id: number; isAvailable: boolean }[],
 ): TableState {
+  // An empty menu means the backend did not answer; the table is kept for the next visit.
+  if (menu.length === 0) {
+    return state;
+  }
+
   const orderable = new Set(
     menu.filter((dish) => dish.isAvailable).map((dish) => dish.id),
   );

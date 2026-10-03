@@ -38,6 +38,11 @@ export const siteConfig = {
   // Optional small line above the brand on the public menu; empty hides it.
   eyebrow: "100% GLUTEN FREE",
   credit: { name: "Darb Rest", url: "https://darb.co.il" },
+  // Shown under the rights line: who built it, and the small note to the owner.
+  dedication: {
+    by: "למא & נור",
+    to: "למחמוד, שמקבל כל אורח באהבה ומגיש כל מנה בתשוקה - תודה על כל מה שאתה עושה.",
+  },
 } as const;
 
 export type SiteDirection = typeof siteConfig.dir;

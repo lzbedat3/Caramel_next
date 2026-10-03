@@ -29,5 +29,6 @@ export const ar: Dictionary = {
   installDismiss: "إغلاق اقتراح التثبيت",
   updateReady: "إصدار جديد جاهز",
   refresh: "تحديث",
+  madeWithLove: "صُنع بحب من قبل",
   loadingMenu: "جارٍ تحميل القائمة…",
 };

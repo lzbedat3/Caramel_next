@@ -7,6 +7,8 @@ import type { Dictionary } from "@/lib/i18n";
 
 type DishDialogProps = {
   dish: StageDish | null;
+  /** The ring's already-loaded photo, shown until the large one arrives. */
+  lowSrc: string | null;
   originRef: React.RefObject<HTMLElement | null>;
   strings: Dictionary;
   onAdd: (id: number) => void;
@@ -18,6 +20,7 @@ const CLOSE_MS = 600;
 // The dish grows out of its ring into a framed photo, and shrinks back into it.
 export function DishDialog({
   dish,
+  lowSrc,
   originRef,
   strings,
   onAdd,
@@ -106,6 +109,11 @@ export function DishDialog({
     );
     ov.classList.add("open");
     closeButton.current?.focus({ preventScroll: true });
+    // A prefetched photo may already be complete, in which case no load event follows.
+    const hi = inner.current?.querySelector<HTMLImageElement>("img.hi");
+    if (hi?.complete && hi.naturalWidth > 0) {
+      hi.setAttribute("data-ok", "");
+    }
   }, [dish, originRef, setFrame]);
 
   useEffect(() => {
@@ -186,15 +194,24 @@ export function DishDialog({
       <div className="bk" />
       <div id="xf" ref={frame}>
         <div className="in" ref={inner}>
+          {lowSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={`lo-${dish?.id}`} className="lo" alt="" src={lowSrc} />
+          ) : null}
           {dish?.detail ? (
-            // The optimised sources are prepared on the server with next/image.
+            // The optimised sources are prepared on the server with next/image;
+            // the image fades in over the ring photo once it has loaded.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={dish.id}
+              className="hi"
               alt=""
               src={dish.detail.src}
               srcSet={dish.detail.srcSet}
               sizes={dish.detail.sizes}
+              onLoad={(event) =>
+                event.currentTarget.setAttribute("data-ok", "")
+              }
             />
           ) : null}
         </div>
