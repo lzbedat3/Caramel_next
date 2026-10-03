@@ -5,7 +5,6 @@ A restaurant menu that is not a list. A ribbon of liquid caramel pours down the 
 **Live:** [caramel.darb.co.il](https://caramel.darb.co.il)
 
 <p>
-  <img src="docs/screenshots/splash.jpg" width="150" alt="Splash: the first pour">
   <img src="docs/screenshots/opening.jpg" width="150" alt="The opening: caramel pours from the brand into the first category">
   <img src="docs/screenshots/dish.jpg" width="150" alt="A dish opened in its caramel frame">
   <img src="docs/screenshots/my-table.jpg" width="150" alt="My table with quantities and total">
