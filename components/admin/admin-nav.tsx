@@ -29,8 +29,8 @@ export function AdminNav({ onNavigate }: AdminNavProps) {
                 className={cn(
                   "flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-medium transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   active
-                    ? "bg-surface text-caramel-deep shadow-soft"
-                    : "text-muted hover:bg-surface/70 hover:text-foreground",
+                    ? "bg-surface-warm text-caramel-deep shadow-[inset_2px_0_0_var(--caramel)] rtl:shadow-[inset_-2px_0_0_var(--caramel)]"
+                    : "text-muted hover:bg-surface-warm/60 hover:text-foreground",
                 )}
               >
                 <Icon className="size-5 shrink-0" />

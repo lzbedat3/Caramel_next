@@ -35,6 +35,9 @@ export const siteConfig = {
   ogLocale: "he_IL",
   description: "גן עדן לציליאקים — התפריט של קרמל, שעות פתיחה ודרכי הגעה.",
   url: getSiteUrl(),
+  // Optional small line above the brand on the public menu; empty hides it.
+  eyebrow: "100% GLUTEN FREE",
+  credit: { name: "Darb Rest", url: "https://darb.co.il" },
 } as const;
 
 export type SiteDirection = typeof siteConfig.dir;

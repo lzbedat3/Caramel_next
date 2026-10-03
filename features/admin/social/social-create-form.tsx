@@ -3,7 +3,7 @@
 import { useId, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
-import { SocialPlatformIcon } from "@/features/public/social/social-platform-icon";
+import { SocialPlatformIcon } from "@/components/icons/social-platform-icon";
 import {
   firstSocialError,
   validateSocialLink,

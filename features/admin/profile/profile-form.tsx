@@ -285,7 +285,7 @@ function ProfileEditor({
               className={inputClassName}
             />
           </Field>
-          <Field id={subtitleId} label="תת־כותרת" error={fieldErrors.subtitle}>
+          <Field id={subtitleId} label="תת-כותרת" error={fieldErrors.subtitle}>
             <input
               id={subtitleId}
               name="subtitle"

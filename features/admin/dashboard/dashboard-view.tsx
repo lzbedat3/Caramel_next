@@ -90,11 +90,6 @@ export function DashboardView({ snapshot }: DashboardViewProps) {
           href={routes.adminMenu}
         />
         <StatCard
-          label="מדיה ראשית גלויה"
-          value={String(snapshot.visibleHeroCount)}
-          href={routes.adminHero}
-        />
-        <StatCard
           label="שעות פתיחה"
           value={
             snapshot.openingHoursRowCount > 0 ? "מוגדרות" : "טרם הוגדרו"

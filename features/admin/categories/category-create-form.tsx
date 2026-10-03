@@ -137,7 +137,7 @@ export function CategoryCreateForm({
     >
       <h2 className="text-base font-medium text-foreground">קטגוריה חדשה</h2>
       <p className="mt-1 text-sm leading-6 text-muted">
-        שם, תת־כותרת אופציונלית ותמונה עגולה לרכבת הקטגוריות. JPG, PNG, WebP,
+        שם, תת-כותרת אופציונלית ותמונה עגולה לרכבת הקטגוריות. JPG, PNG, WebP,
         AVIF או GIF, עד 5MB.
       </p>
 

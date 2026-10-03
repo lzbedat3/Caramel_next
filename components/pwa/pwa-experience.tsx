@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+
+import { getDictionary } from "@/lib/i18n";
 
 type InstallEvent = Event & {
   prompt: () => Promise<void>;
@@ -8,7 +10,7 @@ type InstallEvent = Event & {
 };
 
 export function PwaExperience() {
-  const splash = useRef<HTMLDivElement>(null);
+  const strings = getDictionary();
   const [install, setInstall] = useState<InstallEvent | null>(null);
   const [ios, setIos] = useState(false);
   const [help, setHelp] = useState(false);
@@ -17,20 +19,6 @@ export function PwaExperience() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const node = splash.current;
-    let seen = false;
-    try {
-      seen = sessionStorage.getItem("caramel-welcome") === "yes";
-      sessionStorage.setItem("caramel-welcome", "yes");
-    } catch {
-      /* Storage may be unavailable in private mode. */
-    }
-    if (!seen && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-      node?.classList.add("is-playing");
-    const finish = window.setTimeout(
-      () => node?.classList.remove("is-playing"),
-      850,
-    );
     const initialize = window.setTimeout(() => {
       setOffline(!navigator.onLine);
       const standalone =
@@ -80,6 +68,18 @@ export function PwaExperience() {
           registration = reg;
           if (reg.waiting) setUpdate(reg.waiting);
           reg.addEventListener("updatefound", onUpdate);
+          // Hand the worker what this first visit already loaded, so the menu
+          // opens offline without needing a second visit.
+          void navigator.serviceWorker.ready.then((ready) => {
+            const urls = performance
+              .getEntriesByType("resource")
+              .map((entry) => entry.name)
+              .filter((name) => name.startsWith(window.location.origin));
+            ready.active?.postMessage({
+              type: "WARM",
+              urls: [window.location.origin + "/", ...urls],
+            });
+          });
         })
         .catch(() => {
           /* The menu remains fully usable if registration fails. */
@@ -87,7 +87,6 @@ export function PwaExperience() {
     }
     return () => {
       disposed = true;
-      window.clearTimeout(finish);
       window.clearTimeout(initialize);
       window.removeEventListener("beforeinstallprompt", capture);
       window.removeEventListener("appinstalled", installed);
@@ -122,72 +121,49 @@ export function PwaExperience() {
 
   return (
     <>
-      <div
-        ref={splash}
-        className="caramel-splash"
-        aria-hidden="true"
-        onClick={() => splash.current?.classList.remove("is-playing")}
-      >
-        <div className="splash-halo" />
-        <div className="splash-stage">
-          <span className="splash-spark spark-one" />
-          <span className="splash-spark spark-two" />
-          <span className="splash-spark spark-three" />
-          {/* A local, pre-sized derivative of the supplied master logo. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="splash-logo"
-            src="/Caramel_Assets/caramel-logo-splash.webp"
-            width="192"
-            height="192"
-            alt=""
-          />
-          <span className="splash-shadow" />
-        </div>
-        <div className="splash-caption">
-          <span>גן עדן לציליאקים</span>
-          <i />
-        </div>
-      </div>
       {offline ? (
-        <div className="pwa-connectivity" role="status">
-          אין חיבור לאינטרנט · המידע המוצג עשוי להיות לא מעודכן
+        <div className="pwa-offline" role="status">
+          {strings.offline}
         </div>
       ) : null}
       {!dismissed && (install || ios) ? (
-        <aside className="pwa-install" aria-label="התקנת קרמל">
+        <aside className="pwa-card" aria-label={strings.installAction}>
           <div>
-            <strong>קרמל, במרחק נגיעה</strong>
-            <p>התפריט שלכם, ישר ממסך הבית</p>
+            <strong>{strings.installTitle}</strong>
+            <p>{strings.installBody}</p>
           </div>
-          <button type="button" onClick={() => void installApp()}>
-            הוספה למסך הבית <span aria-hidden="true">＋</span>
+          <button
+            type="button"
+            className="pwa-action"
+            onClick={() => void installApp()}
+          >
+            {strings.installAction}
           </button>
           <button
             type="button"
             className="pwa-dismiss"
-            aria-label="סגירת הצעת התקנה"
+            aria-label={strings.installDismiss}
             onClick={() => {
               setDismissed(true);
               try {
                 sessionStorage.setItem("caramel-install-dismissed", "yes");
               } catch {}
             }}
-          >
-            ×
-          </button>
+          />
           {help ? (
             <p className="pwa-help" role="status">
-              ב-Safari: לחצו על שיתוף ואז על ״הוסף למסך הבית״.
+              {strings.installIos}
             </p>
           ) : null}
         </aside>
       ) : null}
       {update ? (
-        <div className="pwa-update" role="status">
-          <span>גרסה חדשה של קרמל מוכנה</span>
-          <button type="button" onClick={applyUpdate}>
-            רענון
+        <div className="pwa-card" role="status">
+          <div>
+            <strong>{strings.updateReady}</strong>
+          </div>
+          <button type="button" className="pwa-action" onClick={applyUpdate}>
+            {strings.refresh}
           </button>
         </div>
       ) : null}

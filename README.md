@@ -4,7 +4,7 @@ Caramel is a production-oriented restaurant menu and content-management web appl
 
 ## Overview
 
-The public site is a Hebrew RTL restaurant experience: profile, hero media, category navigation, menu, availability and pricing, about copy, location (including Waze), weekly hours with open/closed state, and social links. Content is loaded from PostgreSQL at request time.
+The public site is a Hebrew RTL restaurant experience called "The Pour": a ribbon of liquid caramel flows down the page as the guest scrolls, wraps each dish and lights it up. It shows the profile, categories, dishes with availability and pricing, a "my table" list with a summary view, location (including Waze), collapsed weekly hours with open/closed state, and social links. Content is loaded from PostgreSQL at request time.
 
 The admin portal is a protected App Router area. Signed-in members of `private.admin_users` can manage the same content, including sort order, visibility, availability, media uploads, overnight opening intervals, and SEO fields. Mutations run as authenticated server actions; the browser never uses a service-role key.
 
@@ -40,13 +40,14 @@ Intended deployment is Vercel for the Next.js app and a hosted Supabase project 
 
 ### Public restaurant experience
 
-- Restaurant profile (name, subtitle, about, phone, address, Waze URL, logo) from Supabase
-- Responsive hero images and video, with a fallback when no media is published
+- Restaurant profile (name, subtitle, about, phone, address, Waze URL) from Supabase
+- The pour: a canvas engine (`features/pour/engine`) lays a caramel path through the server-rendered dish list and lights each dish as the stream reaches it; without scripts the list stays readable
+- Category pools and a sticky category pill that follows the scroll position
+- Dish dialog with description, price and "add to my table"; unavailable dishes are shown but cannot be added; dishes without a photo show a lettered ring
+- "My table": quantities and total kept in the browser (`localStorage`), reconciled with the current menu on load, with a large-print summary view; nothing is sent anywhere
+- Ending with address, Waze, phone, collapsed weekly hours, social links and the platform credit
 - Open/closed status derived from opening hours in `Asia/Jerusalem`, including overnight intervals
-- Circular category navigation; selected category is reflected in the URL (`?category=`)
-- Horizontal, responsive menu sections and item cards; unavailable items remain visible with an unavailable state
-- Item detail dialog for name, price, description, and image
-- About, location, weekly hours, and social links
+- Interface text from `lib/i18n` (Hebrew, Arabic, English); brand values from `config/site.ts` and `config/pour-theme.ts`
 - Dynamic metadata, Open Graph image, favicon, sitemap, robots, and Restaurant JSON-LD
 
 ### Administration portal
@@ -183,11 +184,12 @@ Migrations live in `supabase/migrations/`. Use the Supabase CLI (`supabase db pu
 
 ## Quality checks
 
-There is no automated test suite. Use:
+Unit tests cover the pour's motion maths, the "my table" logic, price formatting and the dictionaries. Use:
 
 ```bash
 npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
 
@@ -204,22 +206,26 @@ This repository is the v1 application foundation: public restaurant experience, 
 
 ### Progressive web app
 
-The public menu includes a web manifest, Apple/Android/maskable icons from
-`public/Caramel_Assets`, and a short master-logo entrance once per browser session.
-The entrance is a brief, non-blocking corner greeting, skipped for reduced-motion users.
-The original master image is preserved; the splash uses a smaller WebP derivative.
+The public menu includes a web manifest with Apple/Android/maskable icons from
+`public/Caramel_Assets` and dark theme colours.
 
 Service workers register only in production (`npm run build` then
 `npm run start`). Test over HTTPS or localhost. Supported Chromium browsers expose
 an install action when eligible; iOS users receive Safari home-screen instructions.
-The operating system controls the native launch splash using the manifest's icons
-and colors; the animated splash runs after the document hydrates.
 
-Offline navigation to `/` shows a branded reconnect page. Menu responses, prices,
-admin pages, authentication routes, and API data are never cached by the worker.
-An already open menu displays a connectivity warning if the device goes offline.
-New worker versions wait for the visitor to accept the refresh prompt. Increment
-`CACHE` in `public/sw.js` whenever changing the offline page or its cached logo.
+Caching rules (`public/sw.js`):
+
+- The menu page is fetched from the network first; when offline, the last copy
+  seen is served with a banner saying prices may be out of date. With nothing
+  cached, a branded offline page is shown.
+- Build assets and brand files are served from cache and refreshed in the background.
+- Optimised dish photos are cached first, capped at 120 entries.
+- Admin, sign-in, auth routes and non-GET requests are never cached.
+- On the first visit the page hands the worker what it already loaded, so the
+  menu works offline without a second visit.
+
+New worker versions wait for the visitor to accept the refresh prompt. Change
+`VERSION` in `public/sw.js` whenever changing the caching rules or the offline page.
 
 Validation: check installation on Android Chrome and iOS Safari after deployment;
 check offline reload after one successful online visit; check reduced motion and

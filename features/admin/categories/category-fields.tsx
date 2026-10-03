@@ -46,7 +46,7 @@ export function CategoryFields({
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={subtitleId} className="text-sm font-medium text-foreground">
-          תת־כותרת
+          תת-כותרת
         </label>
         <input
           id={subtitleId}

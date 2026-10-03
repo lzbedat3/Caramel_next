@@ -100,7 +100,7 @@ function SettingsEditor({
       <section className="rounded-card border border-border bg-surface px-5 py-5 sm:px-6">
         <h2 className="text-base font-medium text-foreground">כתובת האתר</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
-          כתובת קנונית לייצור מטא־דאטה, מפת האתר ו־robots. מגיעה מהגדרת הסביבה,
+          כתובת קנונית לייצור מטא-דאטה, מפת האתר ו-robots. מגיעה מהגדרת הסביבה,
           לא מעריכת הפרופיל.
         </p>
         <p
@@ -133,7 +133,7 @@ function SettingsEditor({
       <section className="rounded-card border border-border bg-surface px-5 py-5 sm:px-6">
         <h2 className="text-base font-medium text-foreground">SEO</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
-          שדות אופציונליים לדף הבית. אם ריקים, ייעשה שימוש בשם המסעדה ובתת־הכותרת
+          שדות אופציונליים לדף הבית. אם ריקים, ייעשה שימוש בשם המסעדה ובתת-הכותרת
           או בטקסט האודות.
         </p>
 
