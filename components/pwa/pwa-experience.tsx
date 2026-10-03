@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { getDictionary } from "@/lib/i18n";
 
@@ -16,7 +17,7 @@ export function PwaExperience() {
   const [help, setHelp] = useState(false);
   const [offline, setOffline] = useState(false);
   const [update, setUpdate] = useState<ServiceWorker | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     const initialize = window.setTimeout(() => {
@@ -25,11 +26,7 @@ export function PwaExperience() {
         window.matchMedia("(display-mode: standalone)").matches ||
         (navigator as Navigator & { standalone?: boolean }).standalone;
       setIos(!standalone && /iPad|iPhone|iPod/.test(navigator.userAgent));
-      try {
-        setDismissed(
-          sessionStorage.getItem("caramel-install-dismissed") === "yes",
-        );
-      } catch {}
+      setSlot(document.getElementById("install-slot"));
     }, 0);
     const capture = (event: Event) => {
       event.preventDefault();
@@ -96,6 +93,12 @@ export function PwaExperience() {
     };
   }, []);
 
+  useEffect(() => {
+    if (slot && (install || ios)) {
+      window.dispatchEvent(new Event("pour:relayout"));
+    }
+  }, [slot, install, ios, help]);
+
   async function installApp() {
     if (!install) {
       setHelp((value) => !value);
@@ -126,37 +129,27 @@ export function PwaExperience() {
           {strings.offline}
         </div>
       ) : null}
-      {!dismissed && (install || ios) ? (
-        <aside className="pwa-card" aria-label={strings.installAction}>
-          <div>
-            <strong>{strings.installTitle}</strong>
-            <p>{strings.installBody}</p>
-          </div>
-          <button
-            type="button"
-            className="pwa-action"
-            onClick={() => void installApp()}
-          >
-            {strings.installAction}
-          </button>
-          <button
-            type="button"
-            className="pwa-dismiss"
-            aria-label={strings.installDismiss}
-            onClick={() => {
-              setDismissed(true);
-              try {
-                sessionStorage.setItem("caramel-install-dismissed", "yes");
-              } catch {}
-            }}
-          />
-          {help ? (
-            <p className="pwa-help" role="status">
-              {strings.installIos}
-            </p>
-          ) : null}
-        </aside>
-      ) : null}
+      {slot && (install || ios)
+        ? createPortal(
+            <div className="pwa-inline">
+              <button type="button" onClick={() => void installApp()}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {strings.installAction}
+              </button>
+              {help ? <p role="status">{strings.installIos}</p> : null}
+            </div>,
+            slot,
+          )
+        : null}
       {update ? (
         <div className="pwa-card" role="status">
           <div>

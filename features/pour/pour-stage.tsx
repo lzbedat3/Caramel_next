@@ -12,6 +12,7 @@ import type {
   PourHandle,
 } from "@/features/pour/engine/types";
 import { MyTable } from "@/features/pour/my-table";
+import { shouldPlaySplash, Splash } from "@/features/pour/splash";
 import { loadTable, saveTable } from "@/features/pour/table/storage";
 import {
   emptyTable,
@@ -41,6 +42,7 @@ type PourStageProps = {
   categories: { id: number; name: string }[];
   strings: Dictionary;
   storageKey: string;
+  brand: string[];
   children: React.ReactNode;
 };
 
@@ -109,23 +111,38 @@ export function PourStage({
   categories,
   strings,
   storageKey,
+  brand,
   children,
 }: PourStageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<PourHandle | null>(null);
   const [activeCategory, setActiveCategory] = useState(0);
   const [pastOpening, setPastOpening] = useState(false);
-  const [openDish, setOpenDish] = useState<StageDish | null>(null);
+  const [open, setOpen] = useState<{
+    dish: StageDish;
+    lowSrc: string | null;
+  } | null>(null);
   // The ring the open dish grew out of; the dialog hides it and shrinks back into it.
   const originRef = useRef<HTMLElement | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // "pending" until the browser says whether the splash plays; the engine waits for it.
+  const [splash, setSplash] = useState<
+    "pending" | "playing" | "draining" | "done"
+  >("pending");
+  const engineReady = splash === "draining" || splash === "done";
   const [table, dispatch] = useReducer(tableReducer, emptyTable);
   const hydrated = useRef(false);
 
-  // The engine positions and lights the server-rendered list.
+  useEffect(() => {
+    // Decided on the client so the server never guesses about storage.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSplash(shouldPlaySplash() ? "playing" : "done");
+  }, []);
+
+  // The engine positions and lights the server-rendered list, once the splash is out of the way.
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) {
+    if (!root || !engineReady) {
       return;
     }
 
@@ -138,7 +155,14 @@ export function PourStage({
       const handle = createPour(
         els,
         pourTheme,
-        { onActiveCategory: setActiveCategory, onPastOpening: setPastOpening },
+        {
+          onActiveCategory: setActiveCategory,
+          onPastOpening: setPastOpening,
+          onError: (error) => {
+            console.error(error);
+            stage?.setAttribute("data-fallback", "");
+          },
+        },
         {
           reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)")
             .matches,
@@ -154,7 +178,7 @@ export function PourStage({
       console.error(error);
       stage?.setAttribute("data-fallback", "");
     }
-  }, []);
+  }, [engineReady]);
 
   // Photos fade in once loaded; a broken photo becomes a lettered ring.
   useEffect(() => {
@@ -179,8 +203,11 @@ export function PourStage({
       }
     };
     for (const img of root.querySelectorAll<HTMLImageElement>(".ph img")) {
-      if (img.complete) {
+      if (img.complete && img.naturalWidth > 0) {
         markLoaded(img);
+      } else if (img.complete) {
+        // Failed before hydration: show the lettered ring instead of an empty one.
+        img.closest(".dish")?.setAttribute("data-noimg", "");
       }
     }
     const onToggle = () => handleRef.current?.relayout();
@@ -188,22 +215,30 @@ export function PourStage({
     root.addEventListener("load", onLoad, true);
     root.addEventListener("error", onError, true);
     root.addEventListener("toggle", onToggle, true);
+    window.addEventListener("pour:relayout", onToggle);
     return () => {
       root.removeEventListener("load", onLoad, true);
       root.removeEventListener("error", onError, true);
       root.removeEventListener("toggle", onToggle, true);
+      window.removeEventListener("pour:relayout", onToggle);
     };
   }, []);
 
   // The table survives a reload, checked against today's menu. Saving is declared
-  // first so the empty first render never overwrites what is stored.
+  // first so the empty first render never overwrites what is stored; the initial
+  // `emptyTable` object itself is never saved (a table emptied by the guest is a
+  // fresh object), which also keeps StrictMode's effect replay from wiping storage.
   useEffect(() => {
-    if (hydrated.current) {
+    if (hydrated.current && table !== emptyTable) {
       saveTable(storageKey, table);
     }
   }, [storageKey, table]);
 
   useEffect(() => {
+    // With no dishes the backend did not answer; leave storage alone for the next visit.
+    if (dishes.length === 0) {
+      return;
+    }
     dispatch({
       type: "replace",
       state: reconcile(loadTable(storageKey), dishes),
@@ -215,6 +250,82 @@ export function PourStage({
     (id: number) => dishes.find((dish) => dish.id === id),
     [dishes],
   );
+
+  // Large photos are fetched ahead: on touch, and one at a time for dishes the
+  // caramel has reached, so the dialog opens with its photo already cached.
+  const prefetched = useRef(new Set<number>());
+  const queue = useRef<StageDish[]>([]);
+  const busy = useRef(false);
+  const prefetch = useCallback((dish: StageDish | undefined, now = false) => {
+    if (!dish?.detail || prefetched.current.has(dish.id)) {
+      return;
+    }
+    const start = (entry: StageDish) => {
+      prefetched.current.add(entry.id);
+      const img = new Image();
+      if (entry.detail?.sizes) img.sizes = entry.detail.sizes;
+      if (entry.detail?.srcSet) img.srcset = entry.detail.srcSet;
+      img.src = entry.detail?.src ?? "";
+      return img;
+    };
+    if (now) {
+      start(dish);
+      return;
+    }
+    queue.current.push(dish);
+    const next = () => {
+      const entry = queue.current.shift();
+      if (!entry || prefetched.current.has(entry.id)) {
+        busy.current = false;
+        if (entry) next();
+        return;
+      }
+      busy.current = true;
+      const img = start(entry);
+      img.onload = img.onerror = () => {
+        busy.current = false;
+        next();
+      };
+    };
+    if (!busy.current) {
+      next();
+    }
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) {
+      return;
+    }
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        const el = record.target as HTMLElement;
+        if (el.hasAttribute("data-lit")) {
+          prefetch(dishById(Number(el.dataset.id)));
+        }
+      }
+    });
+    for (const dish of root.querySelectorAll<HTMLElement>(".dish")) {
+      observer.observe(dish, {
+        attributes: true,
+        attributeFilter: ["data-lit"],
+      });
+    }
+    const onPointerDown = (event: PointerEvent) => {
+      const ph = (event.target as Element).closest<HTMLElement>(".ph");
+      if (ph) {
+        prefetch(
+          dishById(Number(ph.closest<HTMLElement>(".dish")?.dataset.id)),
+          true,
+        );
+      }
+    };
+    root.addEventListener("pointerdown", onPointerDown, { passive: true });
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [dishById, prefetch]);
   const { count, total } = totals(table, (id) => dishById(id)?.value ?? 0);
 
   function onRootClick(event: React.MouseEvent<HTMLDivElement>) {
@@ -226,7 +337,12 @@ export function PourStage({
     const dish = dishById(Number(ph.closest<HTMLElement>(".dish")?.dataset.id));
     if (dish) {
       originRef.current = ph;
-      setOpenDish(dish);
+      // The ring's photo is already on screen; the dialog shows it at once and
+      // swaps in the large one when it arrives.
+      setOpen({
+        dish,
+        lowSrc: ph.querySelector("img")?.currentSrc || null,
+      });
     }
   }
 
@@ -299,6 +415,13 @@ export function PourStage({
         </defs>
       </svg>
       <div id="amb" />
+      {splash === "playing" || splash === "draining" ? (
+        <Splash
+          brand={brand}
+          onDrain={() => setSplash("draining")}
+          onDone={() => setSplash("done")}
+        />
+      ) : null}
       <CategoryNav
         categories={categories}
         active={activeCategory}
@@ -308,11 +431,12 @@ export function PourStage({
       />
       {children}
       <DishDialog
-        dish={openDish}
+        dish={open?.dish ?? null}
+        lowSrc={open?.lowSrc ?? null}
         originRef={originRef}
         strings={strings}
         onAdd={(id) => dispatch({ type: "add", id })}
-        onClosed={() => setOpenDish(null)}
+        onClosed={() => setOpen(null)}
       />
       <MyTable
         table={table}
@@ -323,7 +447,13 @@ export function PourStage({
         sheetOpen={sheetOpen && count > 0}
         onOpen={() => setSheetOpen(true)}
         onClose={() => setSheetOpen(false)}
-        onStep={(id, by) => dispatch({ type: "step", id, by })}
+        onStep={(id, by) => {
+          // Removing the last dish closes the sheet instead of leaving it armed to reopen.
+          if (by === -1 && count === 1) {
+            setSheetOpen(false);
+          }
+          dispatch({ type: "step", id, by });
+        }}
       />
     </div>
   );

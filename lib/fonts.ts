@@ -10,9 +10,12 @@ export const fontHebrew = Heebo({
 export const fontLatin = Ubuntu({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
-  preload: false,
+  preload: true,
   variable: "--font-ubuntu",
   display: "swap",
+  // No synthetic fallback family: it would carry Hebrew glyphs and catch
+  // Hebrew text before it reaches Heebo in "Ubuntu, Heebo" stacks.
+  adjustFontFallback: false,
 });
 
 export const fontArabic = Cairo({

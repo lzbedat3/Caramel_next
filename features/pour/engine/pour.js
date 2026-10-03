@@ -4,19 +4,8 @@
 // It knows nothing about React or the restaurant: it receives elements, a theme and callbacks.
 import { clamp, smooth, stepPour } from "./math";
 
-export function createPour(els, theme, cb, opts) {
-  var D = document;
-  var stage = els.stage,
-    rib = els.rib,
-    dyn = els.dyn,
-    dctx = dyn.getContext("2d"),
-    foot = els.foot;
-  var DPR = Math.min(window.devicePixelRatio || 1, 2);
-  var reduce = opts.reducedMotion;
-  var dead = false,
-    activeCat = -1,
-    pastOpening = null;
-
+// The caramel material and its painter, shared by the page and the splash.
+export function createPainter(theme, DPR) {
   /* ---------- material ---------- */
   var HW0 = theme.halfWidth,
     STEP = theme.step;
@@ -50,35 +39,6 @@ export function createPour(els, theme, cb, opts) {
     }
   })();
   var FIL = theme.fillet; // fillet radius where the stream meets a pool
-  var CH = 1024; // static chunk height (css px)
-  var LINE = theme.pourLine; // pour front as a fraction of viewport height
-  var BACK = 120; // rows above the head drawn dynamically
-  var DH = 270; // dynamic canvas height
-
-  var pools = els.pools.map(function (el) {
-    return { el: el, lit: false, blob: null, sIn: 0, sOut: 0, y: 0 };
-  });
-  var dishes = els.dishes.map(function (d) {
-    return {
-      ci: d.category,
-      side: d.side,
-      el: d.el,
-      ph: d.ph,
-      tx: d.tx,
-      lit: false,
-      cx: 0,
-      cy: 0,
-      sTop: 0,
-      sBot: 0,
-      arc: null,
-    };
-  });
-  function setActive(ci) {
-    if (ci === activeCat) return;
-    activeCat = ci;
-    cb.onActiveCategory(ci);
-  }
-
   /* ---------- strands (polyline paths with normals) ---------- */
   function mkStrand() {
     var X = [],
@@ -639,6 +599,106 @@ export function createPour(els, theme, cb, opts) {
         glint(ctx, strands[i], strands[i].head.glint);
   }
 
+  return {
+    HW0: HW0,
+    STEP: STEP,
+    FIL: FIL,
+    mkStrand: mkStrand,
+    mkBlob: mkBlob,
+    shiftBlob: shiftBlob,
+    sAtY: sAtY,
+    idxAtS: idxAtS,
+    yAtS: yAtS,
+    geom: geom,
+    drawScene: drawScene,
+  };
+}
+
+export function createPour(els, theme, cb, opts) {
+  var D = document;
+  var stage = els.stage,
+    rib = els.rib,
+    dyn = els.dyn,
+    dctx = dyn.getContext("2d"),
+    foot = els.foot;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var reduce = opts.reducedMotion;
+  var dead = false,
+    activeCat = -1,
+    pastOpening = null;
+
+  var P = createPainter(theme, DPR);
+  var HW0 = P.HW0,
+    mkStrand = P.mkStrand,
+    mkBlob = P.mkBlob,
+    shiftBlob = P.shiftBlob,
+    sAtY = P.sAtY,
+    idxAtS = P.idxAtS,
+    yAtS = P.yAtS,
+    geom = P.geom,
+    drawScene = P.drawScene;
+  var CH = 1024; // static chunk height (css px)
+  var LINE = theme.pourLine; // pour front as a fraction of viewport height
+  var BACK = 120; // rows above the head drawn dynamically
+  var DH = 270; // dynamic canvas height
+
+  var pools = els.pools.map(function (el) {
+    return { el: el, lit: false, blob: null, sIn: 0, sOut: 0, y: 0 };
+  });
+  var dishes = els.dishes.map(function (d) {
+    return {
+      ci: d.category,
+      side: d.side,
+      el: d.el,
+      ph: d.ph,
+      tx: d.tx,
+      lit: false,
+      cx: 0,
+      cy: 0,
+      sTop: 0,
+      sBot: 0,
+      arc: null,
+    };
+  });
+  function setActive(ci) {
+    if (ci === activeCat) return;
+    activeCat = ci;
+    cb.onActiveCategory(ci);
+  }
+  // Anything the engine wrote inline is undone so the page can fall back to its plain list.
+  function clearInline() {
+    [els.tag, els.bye, els.sig, foot].forEach(function (el) {
+      el.style.top = "";
+    });
+    pools.forEach(function (p) {
+      p.el.style.top = "";
+    });
+    dishes.forEach(function (d) {
+      d.el.style.top = "";
+      d.ph.style.left = d.ph.style.width = d.ph.style.height = "";
+      d.tx.style.left = d.tx.style.width = "";
+    });
+    stage.style.height = "";
+    rib.style.height = "";
+  }
+  function fail(error) {
+    if (dead) return;
+    dead = true;
+    running = false;
+    try {
+      chunks.forEach(function (c) {
+        rib.removeChild(c.wrap);
+      });
+      chunks = [];
+      stage.removeAttribute("data-pour");
+      stage.removeAttribute("data-ready");
+      clearInline();
+    } catch {
+      /* the fallback styles do not depend on this */
+    }
+    if (cb.onError) cb.onError(error);
+  }
+
   /* ---------- layout + path ---------- */
   var W = 390,
     VH = 800,
@@ -863,7 +923,7 @@ export function createPour(els, theme, cb, opts) {
     els.sig.style.top = Math.round(fb.botY + 44) + "px";
     docH = Math.ceil(
       Math.max(
-        fb.botY + 44 + els.sig.offsetHeight + 120,
+        fb.botY + 44 + els.sig.offsetHeight + 44,
         endY + VH * (1 - LINE) + 24,
       ),
     );
@@ -1046,6 +1106,8 @@ export function createPour(els, theme, cb, opts) {
   }
 
   function target() {
+    // Reduced motion: the whole stream is poured and every dish is lit.
+    if (reduce) return main.len;
     var sy = window.scrollY || window.pageYOffset || 0;
     var maxS = Math.max(0, D.documentElement.scrollHeight - VH);
     if (sy >= maxS - 2) return main.len;
@@ -1054,6 +1116,13 @@ export function createPour(els, theme, cb, opts) {
 
   function tick(t) {
     if (!running || dead) return;
+    try {
+      tickStep(t);
+    } catch (e) {
+      fail(e);
+    }
+  }
+  function tickStep(t) {
     var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
     lastT = t;
     var sy = window.scrollY || 0,
@@ -1102,7 +1171,7 @@ export function createPour(els, theme, cb, opts) {
     requestAnimationFrame(tick);
   }
   function kick() {
-    if (!started) return;
+    if (!started || dead || reduce) return;
     if (!running) {
       running = true;
       lastT = performance.now();
@@ -1137,10 +1206,14 @@ export function createPour(els, theme, cb, opts) {
         return;
       } // mobile URL bar show/hide
       lastW = stage.clientWidth;
-      layout();
-      snap(target());
-      render();
-      onScroll();
+      try {
+        layout();
+        snap(target());
+        render();
+        onScroll();
+      } catch (e) {
+        fail(e);
+      }
     }, 180);
   }
   window.addEventListener("resize", onResize);
@@ -1148,6 +1221,13 @@ export function createPour(els, theme, cb, opts) {
   /* ---------- boot ---------- */
   function boot() {
     if (started || dead) return;
+    try {
+      bootStep();
+    } catch (e) {
+      fail(e);
+    }
+  }
+  function bootStep() {
     stage.setAttribute("data-pour", "on"); // switches the page from normal flow to the engine's absolute layout
     layout();
     lastW = stage.clientWidth;
@@ -1194,15 +1274,18 @@ export function createPour(els, theme, cb, opts) {
       chunks = [];
       stage.removeAttribute("data-pour");
       stage.removeAttribute("data-ready");
-      stage.style.height = "";
-      rib.style.height = "";
+      clearInline();
     },
     relayout: function () {
       if (!started || dead) return;
-      layout();
-      snap(target());
-      render();
-      onScroll();
+      try {
+        layout();
+        snap(target());
+        render();
+        onScroll();
+      } catch (e) {
+        fail(e);
+      }
     },
     categoryTop: function (index) {
       return pools[index] ? Math.max(0, pools[index].y - 132) : 0;

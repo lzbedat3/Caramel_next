@@ -27,5 +27,6 @@ export const he = {
   installDismiss: "סגירת הצעת ההתקנה",
   updateReady: "גרסה חדשה מוכנה",
   refresh: "רענון",
+  madeWithLove: "נבנה באהבה ע״י",
   loadingMenu: "טוען את התפריט…",
 } as const;

@@ -82,3 +82,10 @@ describe("parseStored", () => {
     });
   });
 });
+
+describe("reconcile with an empty menu", () => {
+  it("keeps the stored table when the menu failed to load", () => {
+    const stored = { order: [1, 2], qty: { 1: 2, 2: 1 } };
+    expect(reconcile(stored, [])).toBe(stored);
+  });
+});

@@ -29,5 +29,6 @@ export const en: Dictionary = {
   installDismiss: "Dismiss install suggestion",
   updateReady: "A new version is ready",
   refresh: "Refresh",
+  madeWithLove: "Built with love by",
   loadingMenu: "Loading the menu…",
 };
