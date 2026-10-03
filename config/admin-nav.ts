@@ -5,7 +5,6 @@ import {
   CategoriesIcon,
   ClockIcon,
   DashboardIcon,
-  ImageIcon,
   MenuListIcon,
   SettingsIcon,
   ShareIcon,
@@ -31,11 +30,6 @@ export const adminNavItems: AdminNavItem[] = [
     href: routes.adminProfile,
     label: "פרופיל המסעדה",
     icon: StorefrontIcon,
-  },
-  {
-    href: routes.adminHero,
-    label: "מדיה ראשית",
-    icon: ImageIcon,
   },
   {
     href: routes.adminCategories,

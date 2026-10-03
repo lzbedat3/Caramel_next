@@ -9,7 +9,7 @@ export function Surface({ children, className }: SurfaceProps) {
   return (
     <div
       className={cn(
-        "rounded-card border border-border bg-surface/90 shadow-soft backdrop-blur-sm",
+        "rounded-card border border-border bg-surface/90 shadow-soft",
         className,
       )}
     >

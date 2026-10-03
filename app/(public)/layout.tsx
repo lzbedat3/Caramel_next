@@ -1,6 +1,6 @@
 import { PwaExperience } from "@/components/pwa/pwa-experience";
 
-import { PublicShell } from "@/components/layout/public-shell";
+import "@/styles/pour.css";
 
 export default function PublicLayout({
   children,
@@ -8,9 +8,9 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <PublicShell>
+    <>
       {children}
       <PwaExperience />
-    </PublicShell>
+    </>
   );
 }

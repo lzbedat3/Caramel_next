@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 
 const variants = {
   primary:
-    "bg-gradient-to-br from-caramel-soft via-caramel to-caramel-deep text-white shadow-soft hover:brightness-110",
+    "bg-(image:--gloss-caramel) font-semibold text-[#2a1003] shadow-(--shadow-gloss) hover:brightness-110 active:scale-[0.98]",
   ghost: "text-muted hover:bg-surface-warm hover:text-foreground",
   outline:
     "border border-border bg-surface/70 text-foreground hover:bg-surface-warm",

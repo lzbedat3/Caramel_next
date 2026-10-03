@@ -33,7 +33,7 @@ export function AdminShellFrame({
         <button
           type="button"
           aria-label="סגירת התפריט"
-          className="fixed inset-0 z-40 bg-foreground/20 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
           onClick={onCloseMenu}
         />
       ) : null}
@@ -43,7 +43,7 @@ export function AdminShellFrame({
         aria-hidden={navHidden}
         inert={navHidden}
         className={cn(
-          "fixed inset-y-0 start-0 z-50 flex w-72 flex-col border-e border-border bg-surface-warm/90 px-4 py-5 shadow-soft transition-transform duration-200 lg:static lg:z-0 lg:translate-x-0 lg:shadow-none",
+          "fixed inset-y-0 start-0 z-50 flex w-72 flex-col border-e border-border bg-surface px-4 py-5 shadow-soft transition-transform duration-200 lg:sticky lg:top-0 lg:z-0 lg:h-dvh lg:translate-x-0 lg:shadow-none",
           menuOpen
             ? "translate-x-0"
             : "max-lg:-translate-x-full max-lg:rtl:translate-x-full",

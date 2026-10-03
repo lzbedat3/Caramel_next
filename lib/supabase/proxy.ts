@@ -2,7 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPublicEnv, isSupabaseConfigured } from "@/config/env";
-import { getSafeAdminPath, isAdminPath, isPortalPath, routes } from "@/config/routes";
+import {
+  getSafeAdminPath,
+  isAdminPath,
+  isPortalPath,
+  routes,
+} from "@/config/routes";
 import type { Database } from "@/types/database";
 
 function applySupabaseCookies(from: NextResponse, to: NextResponse) {
@@ -29,8 +34,12 @@ export async function updateSession(request: NextRequest) {
   if (!isSupabaseConfigured()) {
     if (isAdminPath(request.nextUrl.pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = routes.home;
+      url.pathname = routes.portal;
       url.search = "";
+      url.searchParams.set(
+        "next",
+        getSafeAdminPath(request.nextUrl.pathname + request.nextUrl.search),
+      );
       return NextResponse.redirect(url);
     }
 
@@ -75,8 +84,12 @@ export async function updateSession(request: NextRequest) {
 
   if (isAdminPath(pathname) && !isAuthenticated) {
     const url = request.nextUrl.clone();
-    url.pathname = routes.home;
+    url.pathname = routes.portal;
     url.search = "";
+    url.searchParams.set(
+      "next",
+      getSafeAdminPath(pathname + request.nextUrl.search),
+    );
 
     return applySupabaseCookies(supabaseResponse, NextResponse.redirect(url));
   }
