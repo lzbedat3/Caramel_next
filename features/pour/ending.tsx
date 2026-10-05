@@ -1,10 +1,4 @@
-import {
-  ClockIcon,
-  GlobeIcon,
-  LinkIcon,
-  PhoneIcon,
-  PinIcon,
-} from "@/components/icons";
+import { GlobeIcon, LinkIcon, PhoneIcon, PinIcon } from "@/components/icons";
 import {
   FacebookMark,
   InstagramMark,
@@ -14,10 +8,13 @@ import {
   XMark,
   YouTubeMark,
 } from "@/components/icons/brands";
+import type { Locale } from "@/config/locales";
 import { siteConfig } from "@/config/site";
+import { HoursDetails } from "@/features/pour/live-hours";
 import { format, type Dictionary } from "@/lib/i18n";
 import { en } from "@/lib/i18n/en";
-import { WEEKDAYS, type WeekdayHoursRow } from "@/lib/opening-hours";
+import type { OpeningHour } from "@/lib/opening-hours";
+import type { PublicFooter } from "@/services/public-home";
 import { toTelHref } from "@/lib/phone";
 import {
   socialLabel,
@@ -32,9 +29,14 @@ type EndingProps = {
   address: string | null;
   wazeUrl: string | null;
   phone: string | null;
-  hourRows: WeekdayHoursRow[];
-  isOpen: boolean;
+  hours: OpeningHour[];
+  renderedAt: number;
+  locale: Locale;
+  logoSrc: string;
+  /** Every branch, shown only when there is more than one. */
+  branches: { name: string; href: string; current: boolean }[];
   socialLinks: PublicSocialLink[];
+  footer: PublicFooter;
   strings: Dictionary;
 };
 
@@ -51,17 +53,6 @@ const SOCIAL_MARKS: Record<
   website: GlobeIcon,
   other: LinkIcon,
 };
-
-const weekdayName = new Intl.DateTimeFormat(siteConfig.locale, {
-  weekday: "long",
-  timeZone: "UTC",
-});
-
-// 7 January 2024 was a Sunday, the first entry of WEEKDAYS.
-function weekdayLabel(row: WeekdayHoursRow): string {
-  const offset = Math.max(0, WEEKDAYS.indexOf(row.day));
-  return weekdayName.format(new Date(Date.UTC(2024, 0, 7 + offset)));
-}
 
 // A small glossy heart in the caramel of the pour.
 function CaramelHeart() {
@@ -102,20 +93,15 @@ export function Ending({
   address,
   wazeUrl,
   phone,
-  hourRows,
-  isOpen,
+  hours,
+  renderedAt,
+  locale,
+  logoSrc,
+  branches,
   socialLinks,
+  footer,
   strings,
 }: EndingProps) {
-  const today = hourRows.find((row) => row.isToday);
-  const todayText = today
-    ? today.isClosed
-      ? strings.closedDay
-      : today.ranges.join(" · ")
-    : null;
-  const { credit, dedication } = siteConfig;
-  const locale: string = siteConfig.locale;
-
   return (
     <footer id="foot">
       <div className="bye">
@@ -123,6 +109,16 @@ export function Ending({
         {locale === "en" ? null : <small>{en.enjoy.toUpperCase()}</small>}
       </div>
       <div className="sig" id="sig">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="seal"
+          src={logoSrc}
+          alt={name ?? siteConfig.name}
+          width={120}
+          height={120}
+          loading="lazy"
+          decoding="async"
+        />
         {name ? <b>{name}</b> : null}
         {subtitle ? (
           <>
@@ -159,29 +155,30 @@ export function Ending({
               {phoneLabel(phone)}
             </a>
           ) : null}
-          {hourRows.length > 0 ? (
-            <details className="hrs">
-              <summary>
-                <ClockIcon />
-                <span className="lb">{strings.hours}</span>
-                {todayText ? <span className="td">{todayText}</span> : null}
-                <span className="st" data-open={isOpen ? "" : undefined}>
-                  {isOpen ? strings.open : strings.closed}
-                </span>
-              </summary>
-              <ul>
-                {hourRows.map((row) => (
-                  <li key={row.day} data-today={row.isToday ? "" : undefined}>
-                    <span>{weekdayLabel(row)}</span>
-                    <span>
-                      {row.isClosed
-                        ? strings.closedDay
-                        : row.ranges.join(" · ")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </details>
+          <HoursDetails
+            hours={hours}
+            renderedAt={renderedAt}
+            locale={locale}
+            strings={{
+              hours: strings.hours,
+              open: strings.open,
+              closed: strings.closed,
+              closedDay: strings.closedDay,
+            }}
+          />
+          {branches.length > 0 ? (
+            <nav className="brs" aria-label={strings.otherBranches}>
+              <span>{strings.otherBranches}</span>
+              {branches.map((branch) => (
+                <a
+                  key={branch.href}
+                  href={branch.href}
+                  aria-current={branch.current ? "page" : undefined}
+                >
+                  {branch.name}
+                </a>
+              ))}
+            </nav>
           ) : null}
           {socialLinks.length > 0 ? (
             <div className="soc">
@@ -202,25 +199,33 @@ export function Ending({
             </div>
           ) : null}
           <div id="install-slot" className="inst" />
-          <div className="cr">
-            {format(strings.rights, { year: new Date().getFullYear() })}
-            <a
-              href={credit.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              dir="ltr"
-            >
-              {credit.name}
-            </a>
-          </div>
-          {dedication ? (
+          {footer.creditName ? (
+            <div className="cr">
+              {format(strings.rights, { year: new Date().getFullYear() })}
+              {footer.creditUrl ? (
+                <a
+                  href={footer.creditUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  dir="ltr"
+                >
+                  {footer.creditName}
+                </a>
+              ) : (
+                <span dir="ltr">{footer.creditName}</span>
+              )}
+            </div>
+          ) : null}
+          {footer.dedicationBy || footer.dedicationTo ? (
             <div className="ded">
-              <p>
-                {strings.madeWithLove} <b>{dedication.by}</b>
-              </p>
-              {dedication.to ? (
+              {footer.dedicationBy ? (
+                <p>
+                  {strings.madeWithLove} <b>{footer.dedicationBy}</b>
+                </p>
+              ) : null}
+              {footer.dedicationTo ? (
                 <p className="to">
-                  {dedication.to} <CaramelHeart />
+                  {footer.dedicationTo} <CaramelHeart />
                 </p>
               ) : null}
             </div>

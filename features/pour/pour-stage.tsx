@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
+import { brandAssets } from "@/config/brand-assets";
+import type { Locale } from "@/config/locales";
 import { pourTheme } from "@/config/pour-theme";
 import { CategoryNav } from "@/features/pour/category-nav";
 import { DishDialog } from "@/features/pour/dish-dialog";
+import { LanguageSwitcher } from "@/features/pour/language-switcher";
 import { createPour } from "@/features/pour/engine/pour";
 import type {
   PourDish,
@@ -39,10 +42,11 @@ export type StageDish = {
 
 type PourStageProps = {
   dishes: StageDish[];
-  categories: { id: number; name: string }[];
+  categories: { id: number; name: string; image: StageImage | null }[];
   strings: Dictionary;
   storageKey: string;
-  brand: string[];
+  locale: Locale;
+  locationSlug: string | null;
   children: React.ReactNode;
 };
 
@@ -111,13 +115,16 @@ export function PourStage({
   categories,
   strings,
   storageKey,
-  brand,
+  locale,
+  locationSlug,
   children,
 }: PourStageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<PourHandle | null>(null);
   const [activeCategory, setActiveCategory] = useState(0);
   const [pastOpening, setPastOpening] = useState(false);
+  // The closing pool has arrived: the category bar steps aside for it.
+  const [atEnding, setAtEnding] = useState(false);
   const [open, setOpen] = useState<{
     dish: StageDish;
     lowSrc: string | null;
@@ -346,8 +353,41 @@ export function PourStage({
     }
   }
 
+  useEffect(() => {
+    const bye = rootRef.current?.querySelector("#foot .bye");
+    if (!bye) {
+      return;
+    }
+    // "Reached" once the closing pool is in the upper part of the screen, and
+    // for as long as the guest stays at or below it. Measured on scroll, so a
+    // fast fling that skips past the pool is caught as well.
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      setAtEnding(bye.getBoundingClientRect().top < window.innerHeight * 0.55);
+    };
+    const onScroll = () => {
+      if (!frame) {
+        frame = requestAnimationFrame(measure);
+      }
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   function jumpTo(index: number) {
-    const top = handleRef.current?.categoryTop(index);
+    // The bar is fixed; offsetTop ignores the transform that hides it.
+    const nav = rootRef.current?.querySelector<HTMLElement>("#nav");
+    const top = handleRef.current?.categoryTop(
+      index,
+      nav ? nav.offsetTop + nav.offsetHeight : undefined,
+    );
     if (top === undefined) {
       return;
     }
@@ -417,15 +457,29 @@ export function PourStage({
       <div id="amb" />
       {splash === "playing" || splash === "draining" ? (
         <Splash
-          brand={brand}
           onDrain={() => setSplash("draining")}
           onDone={() => setSplash("done")}
         />
       ) : null}
+      {/* Wide screens only: the badge rests in the empty margin beside the menu. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        id="mark"
+        src={brandAssets.logo}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+      />
+      <LanguageSwitcher
+        locale={locale}
+        label={strings.language}
+        locationSlug={locationSlug}
+      />
       <CategoryNav
         categories={categories}
         active={activeCategory}
-        show={pastOpening}
+        show={pastOpening && !atEnding}
         label={strings.categories}
         onJump={jumpTo}
       />

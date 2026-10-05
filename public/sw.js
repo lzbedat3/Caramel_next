@@ -3,12 +3,21 @@
    - Build assets, fonts and brand files: served from cache, refreshed in the background.
    - Optimised dish photos: cache first, capped.
    - Admin, sign-in, auth and anything that is not a GET are never touched. */
-const VERSION = "caramel-v2";
+const VERSION = "caramel-v4";
 const PAGES = `${VERSION}-pages`;
 const ASSETS = `${VERSION}-assets`;
 const IMAGES = `${VERSION}-images`;
 const OFFLINE = "/offline.html";
 const IMAGE_LIMIT = 120;
+// A menu page: "/", "/ar", "/akko" or "/ar/akko". Branches come and go in the
+// admin, so this matches the shape of the address rather than a fixed list.
+const MENU_PATH = /^\/(?:[a-z0-9-]+(?:\/[a-z0-9-]+)?\/?)?$/;
+function isMenuPath(pathname) {
+  return (
+    MENU_PATH.test(pathname) &&
+    !PRIVATE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  );
+}
 const PRIVATE_PREFIXES = ["/admin", "/portal", "/auth", "/api"];
 
 self.addEventListener("install", (event) => {
@@ -16,7 +25,7 @@ self.addEventListener("install", (event) => {
     caches
       .open(PAGES)
       .then((cache) =>
-        cache.addAll([OFFLINE, "/Caramel_Assets/caramel-logo-splash.webp"]),
+        cache.addAll([OFFLINE, "/Caramel_Assets/caramel-logo-splash.webp?v=2"]),
       ),
   );
 });
@@ -71,12 +80,13 @@ async function menuPage(request) {
       const copy = response.clone();
       const html = await copy.clone().text();
       if (html.includes('data-menu="complete"')) {
-        await cache.put("/", copy);
+        await cache.put(new URL(request.url).pathname, copy);
       }
     }
     return response;
   } catch {
     return (
+      (await cache.match(new URL(request.url).pathname)) ||
       (await cache.match("/")) ||
       (await cache.match(OFFLINE)) ||
       Response.error()
@@ -125,8 +135,8 @@ self.addEventListener("message", (event) => {
           const url = new URL(href, self.location.origin);
           if (url.origin !== self.location.origin) return;
           try {
-            if (url.pathname === "/") {
-              await menuPage(new Request("/"));
+            if (isMenuPath(url.pathname)) {
+              await menuPage(new Request(url.pathname));
             } else if (isImage(url.pathname)) {
               await cacheFirstImage(new Request(url.href));
             } else if (isAsset(url.pathname)) {
@@ -149,7 +159,7 @@ self.addEventListener("fetch", (event) => {
   if (PRIVATE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix)))
     return;
 
-  if (request.mode === "navigate" && url.pathname === "/") {
+  if (request.mode === "navigate" && isMenuPath(url.pathname)) {
     event.respondWith(menuPage(request));
   } else if (isImage(url.pathname)) {
     event.respondWith(cacheFirstImage(request));

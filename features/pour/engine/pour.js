@@ -1287,8 +1287,13 @@ export function createPour(els, theme, cb, opts) {
         fail(e);
       }
     },
-    categoryTop: function (index) {
-      return pools[index] ? Math.max(0, pools[index].y - 132) : 0;
+    // Where to scroll so a category's pool rests just below the floating bar,
+    // whose bottom edge is barBottom pixels from the top of the screen.
+    categoryTop: function (index, barBottom) {
+      var p = pools[index];
+      if (!p) return 0;
+      var top = p.blob ? p.blob.topY : p.y - 54;
+      return Math.max(0, top - (barBottom || 54) - 24);
     },
   };
 }
