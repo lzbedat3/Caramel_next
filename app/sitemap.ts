@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 
-import { siteConfig } from "@/config/site";
+import { defaultLocale, locales } from "@/config/locales";
+import { localeUrl } from "@/lib/seo";
 import { getPublicSeoContent } from "@/services/public-seo";
+
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
@@ -18,18 +21,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    return [
-      {
-        url: siteConfig.url,
-        lastModified,
-        changeFrequency: "weekly",
-        priority: 1,
-      },
+    const { locations } = await getPublicSeoContent();
+    // With one branch its page is the home page; with several, each has its own.
+    const paths = [
+      "",
+      ...(locations.length > 1 ? locations.map((row) => `/${row.slug}`) : []),
     ];
+
+    return paths.flatMap((path) => {
+      const languages = Object.fromEntries(
+        locales.map((locale) => [locale, `${localeUrl(locale)}${path}`]),
+      );
+      return locales.map((locale) => ({
+        url: `${localeUrl(locale)}${path}`,
+        lastModified,
+        changeFrequency: "weekly" as const,
+        priority: locale === defaultLocale ? 1 : 0.8,
+        alternates: { languages },
+      }));
+    });
   } catch {
     return [
       {
-        url: siteConfig.url,
+        url: localeUrl(defaultLocale),
         changeFrequency: "weekly",
         priority: 1,
       },

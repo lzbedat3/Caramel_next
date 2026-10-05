@@ -92,6 +92,8 @@ const nextConfig: NextConfig = {
     imageSizes: [48, 64, 96, 128, 160, 256, 384],
   },
   experimental: {
+    // One root layout per language group, so unmatched addresses need this.
+    globalNotFound: true,
     serverActions: {
       bodySizeLimit: "6mb",
       allowedOrigins: localOrigins,

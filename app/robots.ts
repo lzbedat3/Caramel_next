@@ -12,6 +12,8 @@ const adminAndAuthDisallow = [
   "/auth/",
 ];
 
+export const revalidate = 3600;
+
 export default async function robots(): Promise<MetadataRoute.Robots> {
   let isIndexable = true;
 

@@ -1,4 +1,6 @@
 import { PwaExperience } from "@/components/pwa/pwa-experience";
+import { defaultLocale } from "@/config/locales";
+import { RememberLanguage } from "@/features/pour/remember-language";
 
 import "@/styles/pour.css";
 
@@ -9,8 +11,9 @@ export default function PublicLayout({
 }) {
   return (
     <>
+      <RememberLanguage />
       {children}
-      <PwaExperience />
+      <PwaExperience locale={defaultLocale} />
     </>
   );
 }
