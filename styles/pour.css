@@ -2191,7 +2191,8 @@ html:has(.pour)::-webkit-scrollbar {
     sans-serif;
   color: var(--gold);
 }
-.pour #reviews .rv-sum span {
+/* Only the wrapper stacks; the row of stars inside it stays a row. */
+.pour #reviews .rv-sum > span {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -2394,4 +2395,25 @@ html:has(.pour)::-webkit-scrollbar {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* The owner's answer, set into the review it belongs to. */
+.pour #reviews .rv-reply {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-inline-start: 2px solid var(--gold);
+  border-radius: 4px 14px 14px 4px;
+  background: rgba(246, 192, 98, 0.07);
+}
+.pour #reviews .rv-reply:dir(rtl) {
+  border-radius: 14px 4px 4px 14px;
+}
+.pour #reviews .rv-reply b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.pour #reviews .rv-reply p {
+  margin: 3px 0 0;
 }

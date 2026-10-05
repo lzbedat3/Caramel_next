@@ -55,4 +55,6 @@ export const en: Dictionary = {
   reviewError: "We couldn't save your review. Please try again",
   reviewInvalid: "Please enter your name and choose a rating",
   reviewCancel: "Cancel",
+  reviewsOne: "1 review",
+  reviewReply: "Our reply",
 };

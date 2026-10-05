@@ -55,4 +55,6 @@ export const ar: Dictionary = {
   reviewError: "تعذّر حفظ التقييم. حاولوا مجددًا",
   reviewInvalid: "يرجى كتابة الاسم واختيار التقييم",
   reviewCancel: "إلغاء",
+  reviewsOne: "تقييم واحد",
+  reviewReply: "ردّنا",
 };
