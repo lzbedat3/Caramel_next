@@ -148,7 +148,7 @@ function toPublicReviews(
   ratings: { rating: number }[],
   latest: Pick<
     Tables<"reviews">,
-    "id" | "name" | "rating" | "message" | "city" | "created_at"
+    "id" | "name" | "rating" | "message" | "city" | "created_at" | "reply"
   >[],
 ): PublicReviews {
   if (ratings.length === 0) {
@@ -166,6 +166,7 @@ function toPublicReviews(
       message: row.message,
       city: row.city,
       createdAt: row.created_at,
+      reply: row.reply?.trim() || null,
     })),
   };
 }
@@ -208,7 +209,7 @@ export const getPublicHomeContent = cache(
       supabase.from("reviews").select("rating").eq("is_visible", true),
       supabase
         .from("reviews")
-        .select("id, name, rating, message, city, created_at")
+        .select("id, name, rating, message, city, created_at, reply")
         .eq("is_visible", true)
         .order("created_at", { ascending: false })
         .limit(12),
