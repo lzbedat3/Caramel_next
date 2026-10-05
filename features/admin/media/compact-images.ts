@@ -68,184 +68,160 @@ async function compactStorageObject(
   return "compacted";
 }
 
+type ImageTable = "menu_items" | "categories" | "hero_media";
+type Outcome = "compacted" | "skipped" | "failed";
+
+// How many images are downloaded, encoded and stored at the same time. One by
+// one, a menu of seventy photos took minutes; a small pool keeps it to seconds
+// without flooding the storage service.
+const CONCURRENCY = 6;
+
+async function inPool<Item>(
+  items: Item[],
+  worker: (item: Item) => Promise<Outcome>,
+): Promise<Outcome[]> {
+  const results: Outcome[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, items.length) }, async () => {
+      while (next < items.length) {
+        const index = next++;
+        const item = items[index];
+        if (item === undefined) {
+          continue;
+        }
+        try {
+          results[index] = await worker(item);
+        } catch {
+          results[index] = "failed";
+        }
+      }
+    }),
+  );
+  return results;
+}
+
+// Replaces one row's image with a compact copy, then removes the original.
+async function compactRow(
+  supabase: CatalogClient,
+  table: ImageTable,
+  bucket: StorageBucket,
+  maxEdge: number,
+  row: { id: number; storage_path: string },
+  nextPath: string | null,
+): Promise<Outcome> {
+  if (!nextPath) {
+    return "failed";
+  }
+
+  const result = await compactStorageObject(
+    supabase,
+    bucket,
+    row.storage_path,
+    maxEdge,
+    nextPath,
+  );
+  if (result === "skipped") {
+    return "skipped";
+  }
+  if (result !== "compacted") {
+    await supabase.storage.from(bucket).remove([nextPath]);
+    return "failed";
+  }
+
+  const { error } = await supabase
+    .from(table)
+    .update({ storage_path: nextPath })
+    .eq("id", row.id);
+  if (error) {
+    await supabase.storage.from(bucket).remove([nextPath]);
+    return "failed";
+  }
+
+  if (row.storage_path !== nextPath) {
+    await supabase.storage.from(bucket).remove([row.storage_path]);
+  }
+  return "compacted";
+}
+
 export async function compactCatalogImages(): Promise<CompactImagesState> {
   const supabase = await requireAdminClient();
   if (!supabase) {
     return { status: "error", message: "אין הרשאה לדחוס תמונות" };
   }
 
-  let compacted = 0;
-  let skipped = 0;
-  let failed = 0;
+  const [menuResult, categoryResult, heroResult] = await Promise.all([
+    supabase
+      .from("menu_items")
+      .select("id, storage_path")
+      .not("storage_path", "is", null),
+    supabase
+      .from("categories")
+      .select("id, storage_path")
+      .not("storage_path", "is", null),
+    supabase.from("hero_media").select("id, storage_path").eq("type", "image"),
+  ]);
 
-  const { data: menuRows, error: menuError } = await supabase
-    .from("menu_items")
-    .select("id, storage_path")
-    .not("storage_path", "is", null);
-
-  if (menuError) {
+  if (menuResult.error) {
     return { status: "error", message: "לא הצלחנו לטעון את תמונות המנות" };
   }
-
-  for (const row of menuRows ?? []) {
-    const path = row.storage_path;
-    if (!path) {
-      continue;
-    }
-
-    const nextPath = buildMenuItemImagePath("image/webp");
-    if (!nextPath) {
-      failed += 1;
-      continue;
-    }
-
-    const result = await compactStorageObject(
-      supabase,
-      storageBuckets.menuItems,
-      path,
-      MENU_IMAGE_MAX_EDGE,
-      nextPath,
-    );
-
-    if (result === "skipped") {
-      skipped += 1;
-      continue;
-    }
-
-    if (result !== "compacted") {
-      failed += 1;
-      await supabase.storage.from(storageBuckets.menuItems).remove([nextPath]);
-      continue;
-    }
-
-    const { error: updateError } = await supabase
-      .from("menu_items")
-      .update({ storage_path: nextPath })
-      .eq("id", row.id);
-
-    if (updateError) {
-      failed += 1;
-      await supabase.storage.from(storageBuckets.menuItems).remove([nextPath]);
-      continue;
-    }
-
-    if (path !== nextPath) {
-      await supabase.storage.from(storageBuckets.menuItems).remove([path]);
-    }
-    compacted += 1;
-  }
-
-  const { data: categoryRows, error: categoryError } = await supabase
-    .from("categories")
-    .select("id, storage_path")
-    .not("storage_path", "is", null);
-
-  if (categoryError) {
+  if (categoryResult.error) {
     return { status: "error", message: "לא הצלחנו לטעון את תמונות הקטגוריות" };
   }
 
-  for (const row of categoryRows ?? []) {
-    const path = row.storage_path;
-    if (!path) {
-      continue;
-    }
-
-    const nextPath = buildCategoryImagePath("image/webp");
-    if (!nextPath) {
-      failed += 1;
-      continue;
-    }
-
-    const result = await compactStorageObject(
-      supabase,
-      storageBuckets.categories,
-      path,
-      CATEGORY_IMAGE_MAX_EDGE,
-      nextPath,
+  type Job = () => Promise<Outcome>;
+  const withPath = (rows: { id: number; storage_path: string | null }[]) =>
+    rows.filter((row): row is { id: number; storage_path: string } =>
+      Boolean(row.storage_path),
     );
 
-    if (result === "skipped") {
-      skipped += 1;
-      continue;
-    }
+  const jobs: Job[] = [
+    ...withPath(menuResult.data ?? []).map(
+      (row): Job =>
+        () =>
+          compactRow(
+            supabase,
+            "menu_items",
+            storageBuckets.menuItems,
+            MENU_IMAGE_MAX_EDGE,
+            row,
+            buildMenuItemImagePath("image/webp"),
+          ),
+    ),
+    ...withPath(categoryResult.data ?? []).map(
+      (row): Job =>
+        () =>
+          compactRow(
+            supabase,
+            "categories",
+            storageBuckets.categories,
+            CATEGORY_IMAGE_MAX_EDGE,
+            row,
+            buildCategoryImagePath("image/webp"),
+          ),
+    ),
+    ...withPath(heroResult.error ? [] : (heroResult.data ?? []))
+      .filter((row) => heroMediaTypeFromPath(row.storage_path) === "image")
+      .map(
+        (row): Job =>
+          () =>
+            compactRow(
+              supabase,
+              "hero_media",
+              storageBuckets.hero,
+              HERO_IMAGE_MAX_EDGE,
+              row,
+              buildHeroStoragePath("image/webp"),
+            ),
+      ),
+  ];
 
-    if (result !== "compacted") {
-      failed += 1;
-      await supabase.storage.from(storageBuckets.categories).remove([nextPath]);
-      continue;
-    }
-
-    const { error: updateError } = await supabase
-      .from("categories")
-      .update({ storage_path: nextPath })
-      .eq("id", row.id);
-
-    if (updateError) {
-      failed += 1;
-      await supabase.storage.from(storageBuckets.categories).remove([nextPath]);
-      continue;
-    }
-
-    if (path !== nextPath) {
-      await supabase.storage.from(storageBuckets.categories).remove([path]);
-    }
-    compacted += 1;
-  }
-
-  const { data: heroRows, error: heroError } = await supabase
-    .from("hero_media")
-    .select("id, storage_path")
-    .eq("type", "image");
-
-  if (!heroError) {
-    for (const row of heroRows ?? []) {
-      const path = row.storage_path;
-      if (!path || heroMediaTypeFromPath(path) !== "image") {
-        continue;
-      }
-
-      const nextPath = buildHeroStoragePath("image/webp");
-      if (!nextPath) {
-        failed += 1;
-        continue;
-      }
-
-      const result = await compactStorageObject(
-        supabase,
-        storageBuckets.hero,
-        path,
-        HERO_IMAGE_MAX_EDGE,
-        nextPath,
-      );
-
-      if (result === "skipped") {
-        skipped += 1;
-        continue;
-      }
-
-      if (result !== "compacted") {
-        failed += 1;
-        await supabase.storage.from(storageBuckets.hero).remove([nextPath]);
-        continue;
-      }
-
-      const { error: updateError } = await supabase
-        .from("hero_media")
-        .update({ storage_path: nextPath })
-        .eq("id", row.id);
-
-      if (updateError) {
-        failed += 1;
-        await supabase.storage.from(storageBuckets.hero).remove([nextPath]);
-        continue;
-      }
-
-      if (path !== nextPath) {
-        await supabase.storage.from(storageBuckets.hero).remove([path]);
-      }
-      compacted += 1;
-    }
-  }
+  const outcomes = await inPool(jobs, (job) => job());
+  const count = (outcome: Outcome) =>
+    outcomes.filter((entry) => entry === outcome).length;
+  const compacted = count("compacted");
+  const skipped = count("skipped");
+  const failed = count("failed");
 
   revalidatePath("/", "layout");
   revalidatePath("/admin", "layout");

@@ -24,6 +24,9 @@ export function AdminNav({ onNavigate }: AdminNavProps) {
             <li key={item.href}>
               <Link
                 href={item.href}
+                // Loads each section with its data ahead of the click, so
+                // moving between sections does not wait on the database.
+                prefetch
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={cn(
