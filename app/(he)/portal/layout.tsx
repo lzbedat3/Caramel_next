@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import "@/styles/portal.css";
 
 export const metadata: Metadata = {
   robots: {
@@ -13,9 +14,5 @@ export default function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="text-foreground relative flex min-h-dvh flex-1 flex-col">
-      {children}
-    </div>
-  );
+  return children;
 }

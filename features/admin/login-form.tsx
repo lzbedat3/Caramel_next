@@ -15,6 +15,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,34 +49,73 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <label className="flex flex-col gap-2 text-start text-sm">
-        <span className="text-muted">אימייל</span>
+      <label className="portal-field">
+        <span>אימייל</span>
         <input
           required
           id="email"
           name="email"
           type="email"
+          dir="ltr"
+          inputMode="email"
           autoComplete="email"
-          className="rounded-control border border-border bg-surface px-4 py-3 text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+          autoCapitalize="none"
+          spellCheck={false}
+          className="portal-input"
         />
       </label>
-      <label className="flex flex-col gap-2 text-start text-sm">
-        <span className="text-muted">סיסמה</span>
-        <input
-          required
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          className="rounded-control border border-border bg-surface px-4 py-3 text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
-        />
+      <label className="portal-field">
+        <span>סיסמה</span>
+        <span className="portal-control">
+          <input
+            required
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            dir="ltr"
+            autoComplete="current-password"
+            className="portal-input"
+          />
+          <button
+            type="button"
+            className="portal-toggle"
+            aria-pressed={showPassword}
+            aria-label={showPassword ? "הסתרת הסיסמה" : "הצגת הסיסמה"}
+            title={showPassword ? "הסתרת הסיסמה" : "הצגת הסיסמה"}
+            onClick={() => setShowPassword((value) => !value)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinejoin="round"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="3"
+                stroke="currentColor"
+                strokeWidth="1.7"
+              />
+              {showPassword ? (
+                <path
+                  d="M4 4l16 16"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
+              ) : null}
+            </svg>
+          </button>
+        </span>
       </label>
       {error ? (
-        <p className="rounded-control bg-surface-warm px-4 py-3 text-sm text-caramel-deep">
+        <p role="alert" className="portal-error">
           {error}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button type="submit" disabled={pending} className="mt-1 w-full">
         {pending ? "מתחבר…" : "כניסה"}
       </Button>
     </form>
