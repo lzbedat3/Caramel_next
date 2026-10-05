@@ -175,14 +175,18 @@ export function MenuItemCard({
   }
 
   return (
-    <article className="rounded-card border border-border bg-surface px-4 py-4 sm:px-5">
-      <form onSubmit={onSubmit} aria-busy={busy} className="flex flex-col gap-4">
+    <article className="rounded-card border-border bg-surface border px-4 py-4 sm:px-5">
+      <form
+        onSubmit={onSubmit}
+        aria-busy={busy}
+        className="flex flex-col gap-4"
+      >
         <input type="hidden" name="id" value={item.id} />
         <input type="hidden" name="image_action" value={imageAction} />
 
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex shrink-0 flex-col items-center gap-2 sm:w-28">
-            <div className="relative aspect-square w-20 overflow-hidden rounded-[1.25rem] bg-surface-warm">
+            <div className="bg-surface-warm relative aspect-square w-20 overflow-hidden rounded-[1.25rem]">
               {displaySrc ? (
                 displaySrc.startsWith("blob:") ? (
                   // Local blob preview is not in the remote image loader.
@@ -202,12 +206,14 @@ export function MenuItemCard({
                   />
                 )
               ) : (
-                <span className="flex size-full items-center justify-center font-display text-2xl text-caramel-deep">
+                <span className="font-display text-caramel-deep flex size-full items-center justify-center text-2xl">
                   {item.name.trim().charAt(0) || "•"}
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-soft">{formatPriceIls(item.price)}</p>
+            <p className="text-muted-soft text-xs">
+              {formatPriceIls(item.price)}
+            </p>
           </div>
 
           <div className="min-w-0 flex-1">
@@ -240,6 +246,7 @@ export function MenuItemCard({
               shortDescription={item.short_description ?? ""}
               price={formatPriceInput(item.price)}
               categoryId={item.category_id}
+              translations={item}
               disabled={busy}
               nameError={fieldErrors.name}
               priceError={fieldErrors.price}
@@ -249,11 +256,11 @@ export function MenuItemCard({
         </div>
 
         {fileError ? (
-          <p role="alert" className="text-sm text-caramel-deep">
+          <p role="alert" className="text-caramel-deep text-sm">
             {fileError}
           </p>
         ) : file ? (
-          <p className="text-xs text-muted-soft">
+          <p className="text-muted-soft text-xs">
             תמונה חדשה מוכנה: {file.name}. תישמר בלחיצה על שמירה.
           </p>
         ) : null}
@@ -274,7 +281,7 @@ export function MenuItemCard({
           <label
             htmlFor={`${formId}-image`}
             className={cn(
-              "inline-flex cursor-pointer items-center justify-center rounded-pill border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-warm peer-focus-visible:ring-2 peer-focus-visible:ring-ring",
+              "rounded-pill border-border bg-surface text-foreground hover:bg-surface-warm peer-focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center border px-4 py-2 text-sm font-medium transition peer-focus-visible:ring-2",
               busy && "pointer-events-none opacity-60",
             )}
           >
@@ -339,7 +346,7 @@ export function MenuItemCard({
           </Button>
           {confirmingDelete ? (
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm text-caramel-deep">למחוק את המנה?</p>
+              <p className="text-caramel-deep text-sm">למחוק את המנה?</p>
               <Button
                 type="button"
                 disabled={busy}

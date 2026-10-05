@@ -5,7 +5,9 @@ import {
   CategoriesIcon,
   ClockIcon,
   DashboardIcon,
+  HeartIcon,
   MenuListIcon,
+  PinIcon,
   SettingsIcon,
   ShareIcon,
   StorefrontIcon,
@@ -42,9 +44,19 @@ export const adminNavItems: AdminNavItem[] = [
     icon: MenuListIcon,
   },
   {
+    href: routes.adminLocations,
+    label: "סניפים",
+    icon: PinIcon,
+  },
+  {
     href: routes.adminHours,
     label: "שעות פתיחה",
     icon: ClockIcon,
+  },
+  {
+    href: routes.adminReviews,
+    label: "ביקורות",
+    icon: HeartIcon,
   },
   {
     href: routes.adminSocial,
@@ -63,7 +75,10 @@ export const adminNavItems: AdminNavItem[] = [
   },
 ];
 
-export function isAdminNavActive(pathname: string, item: AdminNavItem): boolean {
+export function isAdminNavActive(
+  pathname: string,
+  item: AdminNavItem,
+): boolean {
   if (item.exact) {
     return pathname === item.href;
   }

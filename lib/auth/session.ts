@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { isSupabaseConfigured } from "@/config/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,17 +54,21 @@ export type AdminAccess =
   | { status: "forbidden"; claims: AuthClaims }
   | { status: "ok"; claims: AuthClaims };
 
-export async function getAdminAccess(): Promise<AdminAccess> {
-  const claims = await getAuthClaims();
+export const getAdminAccess = cache(async (): Promise<AdminAccess> => {
+  // Reading the claims is local; the admin check is a network call, so it
+  // starts straight away instead of waiting for the claims.
+  const [claims, isAdmin] = await Promise.all([
+    getAuthClaims(),
+    currentUserIsAdmin(),
+  ]);
 
   if (!claims) {
     return { status: "unauthenticated" };
   }
 
-  const isAdmin = await currentUserIsAdmin();
   if (!isAdmin) {
     return { status: "forbidden", claims };
   }
 
   return { status: "ok", claims };
-}
+});

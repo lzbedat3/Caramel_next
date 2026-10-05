@@ -21,7 +21,10 @@ export default async function ProtectedAdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const access = await getAdminAccess();
+  const [access, shell] = await Promise.all([
+    getAdminAccess(),
+    getAdminShellContext(),
+  ]);
 
   if (access.status === "unauthenticated") {
     redirect(routes.portal);
@@ -30,8 +33,6 @@ export default async function ProtectedAdminLayout({
   if (access.status === "forbidden") {
     return <AdminAccessDenied email={access.claims.email} />;
   }
-
-  const shell = await getAdminShellContext();
 
   return (
     <AdminShell

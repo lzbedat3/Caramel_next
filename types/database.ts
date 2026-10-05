@@ -20,9 +20,13 @@ export type Database = {
           id: number
           is_visible: boolean
           name: string
+          name_ar: string | null
+          name_en: string | null
           sort_order: number
           storage_path: string | null
           subtitle: string | null
+          subtitle_ar: string | null
+          subtitle_en: string | null
           updated_at: string
         }
         Insert: {
@@ -30,9 +34,13 @@ export type Database = {
           id?: never
           is_visible?: boolean
           name: string
+          name_ar?: string | null
+          name_en?: string | null
           sort_order?: number
           storage_path?: string | null
           subtitle?: string | null
+          subtitle_ar?: string | null
+          subtitle_en?: string | null
           updated_at?: string
         }
         Update: {
@@ -40,9 +48,13 @@ export type Database = {
           id?: never
           is_visible?: boolean
           name?: string
+          name_ar?: string | null
+          name_en?: string | null
           sort_order?: number
           storage_path?: string | null
           subtitle?: string | null
+          subtitle_ar?: string | null
+          subtitle_en?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -95,6 +107,57 @@ export type Database = {
         }
         Relationships: []
       }
+      locations: {
+        Row: {
+          address: string | null
+          address_ar: string | null
+          address_en: string | null
+          created_at: string
+          id: number
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          name_en: string | null
+          phone: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+          waze_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          address_ar?: string | null
+          address_en?: string | null
+          created_at?: string
+          id?: never
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          name_en?: string | null
+          phone?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          waze_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          address_ar?: string | null
+          address_en?: string | null
+          created_at?: string
+          id?: never
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          name_en?: string | null
+          phone?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          waze_url?: string | null
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           badge: string | null
@@ -104,8 +167,12 @@ export type Database = {
           is_available: boolean
           is_visible: boolean
           name: string
+          name_ar: string | null
+          name_en: string | null
           price: number
           short_description: string | null
+          short_description_ar: string | null
+          short_description_en: string | null
           sort_order: number
           storage_path: string | null
           updated_at: string
@@ -118,8 +185,12 @@ export type Database = {
           is_available?: boolean
           is_visible?: boolean
           name: string
+          name_ar?: string | null
+          name_en?: string | null
           price: number
           short_description?: string | null
+          short_description_ar?: string | null
+          short_description_en?: string | null
           sort_order?: number
           storage_path?: string | null
           updated_at?: string
@@ -132,8 +203,12 @@ export type Database = {
           is_available?: boolean
           is_visible?: boolean
           name?: string
+          name_ar?: string | null
+          name_en?: string | null
           price?: number
           short_description?: string | null
+          short_description_ar?: string | null
+          short_description_en?: string | null
           sort_order?: number
           storage_path?: string | null
           updated_at?: string
@@ -155,6 +230,7 @@ export type Database = {
           day_of_week: Database["public"]["Enums"]["weekday"]
           id: number
           is_closed: boolean
+          location_id: number
           note: string | null
           opens_at: string | null
           sort_order: number
@@ -166,6 +242,7 @@ export type Database = {
           day_of_week: Database["public"]["Enums"]["weekday"]
           id?: never
           is_closed?: boolean
+          location_id: number
           note?: string | null
           opens_at?: string | null
           sort_order?: number
@@ -177,61 +254,146 @@ export type Database = {
           day_of_week?: Database["public"]["Enums"]["weekday"]
           id?: never
           is_closed?: boolean
+          location_id?: number
           note?: string | null
           opens_at?: string | null
           sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "opening_hours_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       restaurant_profile: {
         Row: {
           about: string | null
+          about_ar: string | null
+          about_en: string | null
           address: string | null
+          address_ar: string | null
+          address_en: string | null
           created_at: string
           email: string | null
           id: number
           is_active: boolean
           logo_storage_path: string | null
           name: string
+          name_ar: string | null
+          name_en: string | null
           phone: string | null
           subtitle: string | null
+          subtitle_ar: string | null
+          subtitle_en: string | null
           updated_at: string
           waze_url: string | null
         }
         Insert: {
           about?: string | null
+          about_ar?: string | null
+          about_en?: string | null
           address?: string | null
+          address_ar?: string | null
+          address_en?: string | null
           created_at?: string
           email?: string | null
           id?: number
           is_active?: boolean
           logo_storage_path?: string | null
           name: string
+          name_ar?: string | null
+          name_en?: string | null
           phone?: string | null
           subtitle?: string | null
+          subtitle_ar?: string | null
+          subtitle_en?: string | null
           updated_at?: string
           waze_url?: string | null
         }
         Update: {
           about?: string | null
+          about_ar?: string | null
+          about_en?: string | null
           address?: string | null
+          address_ar?: string | null
+          address_en?: string | null
           created_at?: string
           email?: string | null
           id?: number
           is_active?: boolean
           logo_storage_path?: string | null
           name?: string
+          name_ar?: string | null
+          name_en?: string | null
           phone?: string | null
           subtitle?: string | null
+          subtitle_ar?: string | null
+          subtitle_en?: string | null
           updated_at?: string
           waze_url?: string | null
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: number
+          is_visible: boolean
+          locale: string | null
+          location_id: number | null
+          message: string | null
+          name: string
+          rating: number
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id?: never
+          is_visible?: boolean
+          locale?: string | null
+          location_id?: number | null
+          message?: string | null
+          name: string
+          rating: number
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: never
+          is_visible?: boolean
+          locale?: string | null
+          location_id?: number | null
+          message?: string | null
+          name?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           created_at: string
+          credit_name: string | null
+          credit_url: string | null
+          dedication_by: string | null
+          dedication_by_ar: string | null
+          dedication_by_en: string | null
+          dedication_to: string | null
+          dedication_to_ar: string | null
+          dedication_to_en: string | null
           id: number
           seo_description: string | null
           seo_title: string | null
@@ -239,6 +401,14 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          credit_name?: string | null
+          credit_url?: string | null
+          dedication_by?: string | null
+          dedication_by_ar?: string | null
+          dedication_by_en?: string | null
+          dedication_to?: string | null
+          dedication_to_ar?: string | null
+          dedication_to_en?: string | null
           id?: number
           seo_description?: string | null
           seo_title?: string | null
@@ -246,6 +416,14 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          credit_name?: string | null
+          credit_url?: string | null
+          dedication_by?: string | null
+          dedication_by_ar?: string | null
+          dedication_by_en?: string | null
+          dedication_to?: string | null
+          dedication_to_ar?: string | null
+          dedication_to_en?: string | null
           id?: number
           seo_description?: string | null
           seo_title?: string | null
@@ -324,12 +502,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -353,11 +531,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -378,11 +556,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -403,11 +581,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -420,11 +598,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

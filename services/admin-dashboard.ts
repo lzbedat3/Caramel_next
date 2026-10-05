@@ -3,6 +3,8 @@ import "server-only";
 import { cache } from "react";
 
 import { isSupabaseConfigured } from "@/config/env";
+import { siteConfig } from "@/config/site";
+import { isRestaurantOpen } from "@/lib/opening-hours";
 import { createClient } from "@/lib/supabase/server";
 
 export type AdminShellContext = {
@@ -13,10 +15,16 @@ export type AdminDashboardSnapshot = {
   restaurantName: string | null;
   profileExists: boolean;
   isActive: boolean | null;
+  /** Open right now by the saved hours; null when no hours are saved. */
+  isOpenNow: boolean | null;
   categoryCount: number;
+  hiddenCategoryCount: number;
   menuItemCount: number;
+  visibleItemCount: number;
+  hiddenItemCount: number;
   unavailableItemCount: number;
-  visibleHeroCount: number;
+  itemsWithoutImage: number;
+  itemsMissingTranslation: number;
   openingHoursRowCount: number;
 };
 
@@ -24,22 +32,17 @@ const emptySnapshot: AdminDashboardSnapshot = {
   restaurantName: null,
   profileExists: false,
   isActive: null,
+  isOpenNow: null,
   categoryCount: 0,
+  hiddenCategoryCount: 0,
   menuItemCount: 0,
+  visibleItemCount: 0,
+  hiddenItemCount: 0,
   unavailableItemCount: 0,
-  visibleHeroCount: 0,
+  itemsWithoutImage: 0,
+  itemsMissingTranslation: 0,
   openingHoursRowCount: 0,
 };
-
-async function counted(
-  query: PromiseLike<{ count: number | null; error: { message: string } | null }>,
-): Promise<number> {
-  const { count, error } = await query;
-  if (error) {
-    return 0;
-  }
-  return count ?? 0;
-}
 
 export const getAdminShellContext = cache(
   async (): Promise<AdminShellContext> => {
@@ -73,58 +76,48 @@ export const getAdminDashboardSnapshot = cache(
 
     try {
       const supabase = await createClient();
-      const [
-        profileResult,
-        categoryCount,
-        menuItemCount,
-        unavailableItemCount,
-        visibleHeroCount,
-        openingHoursRowCount,
-      ] = await Promise.all([
-        supabase
-          .from("restaurant_profile")
-          .select("name, is_active")
-          .maybeSingle(),
-        counted(
+      const [profileResult, categoriesResult, itemsResult, hoursResult] =
+        await Promise.all([
           supabase
-            .from("categories")
-            .select("*", { count: "exact", head: true }),
-        ),
-        counted(
+            .from("restaurant_profile")
+            .select("name, is_active")
+            .maybeSingle(),
+          supabase.from("categories").select("id, is_visible"),
           supabase
             .from("menu_items")
-            .select("*", { count: "exact", head: true }),
-        ),
-        counted(
-          supabase
-            .from("menu_items")
-            .select("*", { count: "exact", head: true })
-            .eq("is_available", false),
-        ),
-        counted(
-          supabase
-            .from("hero_media")
-            .select("*", { count: "exact", head: true })
-            .eq("is_visible", true),
-        ),
-        counted(
-          supabase
-            .from("opening_hours")
-            .select("*", { count: "exact", head: true }),
-        ),
-      ]);
+            .select(
+              "id, is_visible, is_available, storage_path, name_ar, name_en",
+            ),
+          supabase.from("opening_hours").select("*"),
+        ]);
 
       const profile = profileResult.error ? null : profileResult.data;
+      const categories = categoriesResult.data ?? [];
+      const items = itemsResult.data ?? [];
+      const hours = hoursResult.data ?? [];
+      const visibleItems = items.filter((item) => item.is_visible);
 
       return {
         restaurantName: profile?.name?.trim() || null,
         profileExists: Boolean(profile),
         isActive: profile?.is_active ?? null,
-        categoryCount,
-        menuItemCount,
-        unavailableItemCount,
-        visibleHeroCount,
-        openingHoursRowCount,
+        isOpenNow:
+          hours.length > 0
+            ? isRestaurantOpen(hours, new Date(), siteConfig.timeZone)
+            : null,
+        categoryCount: categories.length,
+        hiddenCategoryCount: categories.filter((row) => !row.is_visible).length,
+        menuItemCount: items.length,
+        visibleItemCount: visibleItems.length,
+        hiddenItemCount: items.length - visibleItems.length,
+        unavailableItemCount: items.filter((item) => !item.is_available).length,
+        // Only what guests can see is worth chasing.
+        itemsWithoutImage: visibleItems.filter((item) => !item.storage_path)
+          .length,
+        itemsMissingTranslation: visibleItems.filter(
+          (item) => !item.name_ar?.trim() || !item.name_en?.trim(),
+        ).length,
+        openingHoursRowCount: hours.length,
       };
     } catch {
       return emptySnapshot;

@@ -2,6 +2,7 @@
 
 import { useActionState, useId } from "react";
 
+import { TranslationFields } from "@/components/admin/translation-fields";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/config/routes";
 import { siteConfig } from "@/config/site";
@@ -10,16 +11,10 @@ import {
   type SiteSettingsFieldErrors,
 } from "@/lib/admin/site-settings";
 import { cn } from "@/lib/cn";
-import {
-  SEO_DESCRIPTION_MAX_LENGTH,
-  SEO_TITLE_MAX_LENGTH,
-} from "@/lib/seo";
+import { SEO_DESCRIPTION_MAX_LENGTH, SEO_TITLE_MAX_LENGTH } from "@/lib/seo";
 import type { AdminSiteSettings } from "@/services/admin-settings";
 
-import {
-  saveSiteSettings,
-  type SaveSettingsState,
-} from "./actions";
+import { saveSiteSettings, type SaveSettingsState } from "./actions";
 
 const idleSaveSettingsState: SaveSettingsState = {
   status: "idle",
@@ -97,32 +92,32 @@ function SettingsEditor({
         ) : null}
       </div>
 
-      <section className="rounded-card border border-border bg-surface px-5 py-5 sm:px-6">
-        <h2 className="text-base font-medium text-foreground">כתובת האתר</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
+      <section className="rounded-card border-border bg-surface border px-5 py-5 sm:px-6">
+        <h2 className="text-foreground text-base font-medium">כתובת האתר</h2>
+        <p className="text-muted mt-1 text-sm leading-6">
           כתובת קנונית לייצור מטא-דאטה, מפת האתר ו-robots. מגיעה מהגדרת הסביבה,
           לא מעריכת הפרופיל.
         </p>
         <p
           dir="ltr"
-          className="mt-4 rounded-control border border-border bg-surface-warm px-4 py-3 font-mono text-sm text-foreground"
+          className="rounded-control border-border bg-surface-warm text-foreground mt-4 border px-4 py-3 font-mono text-sm"
         >
           {siteConfig.url}
         </p>
       </section>
 
-      <section className="rounded-card border border-border bg-surface px-5 py-5 sm:px-6">
-        <h2 className="text-base font-medium text-foreground">אינדוקס</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
+      <section className="rounded-card border-border bg-surface border px-5 py-5 sm:px-6">
+        <h2 className="text-foreground text-base font-medium">אינדוקס</h2>
+        <p className="text-muted mt-1 text-sm leading-6">
           {restaurantActive
             ? "הפרופיל פעיל. דף הבית הציבורי מאונדקס, ופורטל הניהול נשאר מחוץ לאינדוקס."
             : "הפרופיל אינו פעיל. דף הבית לא יאונדקס עד שהמסעדה תופעל בפרופיל."}
         </p>
-        <p className="mt-3 text-sm leading-6 text-muted">
+        <p className="text-muted mt-3 text-sm leading-6">
           שם, תיאור, כתובת ולוגו מנוהלים ב
           <a
             href={routes.adminProfile}
-            className="mx-1 text-caramel-deep underline-offset-2 hover:underline"
+            className="text-caramel-deep mx-1 underline-offset-2 hover:underline"
           >
             פרופיל המסעדה
           </a>
@@ -130,16 +125,19 @@ function SettingsEditor({
         </p>
       </section>
 
-      <section className="rounded-card border border-border bg-surface px-5 py-5 sm:px-6">
-        <h2 className="text-base font-medium text-foreground">SEO</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
-          שדות אופציונליים לדף הבית. אם ריקים, ייעשה שימוש בשם המסעדה ובתת-הכותרת
-          או בטקסט האודות.
+      <section className="rounded-card border-border bg-surface border px-5 py-5 sm:px-6">
+        <h2 className="text-foreground text-base font-medium">SEO</h2>
+        <p className="text-muted mt-1 text-sm leading-6">
+          שדות אופציונליים לדף הבית. אם ריקים, ייעשה שימוש בשם המסעדה
+          ובתת-הכותרת או בטקסט האודות.
         </p>
 
         <div className="mt-5 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor={titleId} className="text-sm font-medium text-foreground">
+            <label
+              htmlFor={titleId}
+              className="text-foreground text-sm font-medium"
+            >
               כותרת לדף הבית
             </label>
             <input
@@ -153,11 +151,11 @@ function SettingsEditor({
               className={cn(inputClassName)}
             />
             {errors.seoTitle ? (
-              <p role="alert" className="text-sm text-caramel-deep">
+              <p role="alert" className="text-caramel-deep text-sm">
                 {errors.seoTitle}
               </p>
             ) : (
-              <p className="text-xs leading-5 text-muted-soft">
+              <p className="text-muted-soft text-xs leading-5">
                 עד {SEO_TITLE_MAX_LENGTH} תווים. ברירת מחדל: {derivedTitle}
               </p>
             )}
@@ -166,7 +164,7 @@ function SettingsEditor({
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor={descriptionId}
-              className="text-sm font-medium text-foreground"
+              className="text-foreground text-sm font-medium"
             >
               תיאור לדף הבית
             </label>
@@ -182,24 +180,108 @@ function SettingsEditor({
               className={cn(inputClassName, "min-h-28 resize-y")}
             />
             {errors.seoDescription ? (
-              <p role="alert" className="text-sm text-caramel-deep">
+              <p role="alert" className="text-caramel-deep text-sm">
                 {errors.seoDescription}
               </p>
             ) : (
-              <p className="text-xs leading-5 text-muted-soft">
+              <p className="text-muted-soft text-xs leading-5">
                 עד {SEO_DESCRIPTION_MAX_LENGTH} תווים. ברירת מחדל:{" "}
                 {derivedDescription}
               </p>
             )}
           </div>
         </div>
+      </section>
 
-        <div className="mt-5">
-          <Button type="submit" disabled={pending}>
-            {pending ? "שומר…" : "שמירת הגדרות"}
-          </Button>
+      <section className="rounded-card border-border bg-surface border px-5 py-5 sm:px-6">
+        <h2 className="text-foreground text-lg font-medium">תחתית התפריט</h2>
+        <p className="text-muted mt-1 text-sm leading-6">
+          שורת הזכויות וההקדשה שמופיעות בסוף התפריט הציבורי. שדה ריק מסתיר את
+          השורה שלו.
+        </p>
+        <div className="mt-4 flex flex-col gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor={`${formId}-credit-name`}
+                className="text-foreground text-sm font-medium"
+              >
+                זכויות שמורות ל
+              </label>
+              <input
+                id={`${formId}-credit-name`}
+                name="credit_name"
+                defaultValue={settings?.credit_name ?? ""}
+                disabled={pending}
+                className={inputClassName}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor={`${formId}-credit-url`}
+                className="text-foreground text-sm font-medium"
+              >
+                קישור
+              </label>
+              <input
+                id={`${formId}-credit-url`}
+                name="credit_url"
+                type="url"
+                dir="ltr"
+                defaultValue={settings?.credit_url ?? ""}
+                disabled={pending}
+                className={inputClassName}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor={`${formId}-dedication-by`}
+              className="text-foreground text-sm font-medium"
+            >
+              נבנה באהבה ע״י
+            </label>
+            <input
+              id={`${formId}-dedication-by`}
+              name="dedication_by"
+              defaultValue={settings?.dedication_by ?? ""}
+              disabled={pending}
+              className={inputClassName}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor={`${formId}-dedication-to`}
+              className="text-foreground text-sm font-medium"
+            >
+              הקדשה
+            </label>
+            <textarea
+              id={`${formId}-dedication-to`}
+              name="dedication_to"
+              rows={2}
+              defaultValue={settings?.dedication_to ?? ""}
+              disabled={pending}
+              className={cn(inputClassName, "resize-y")}
+            />
+          </div>
+          <TranslationFields
+            idPrefix={`${formId}-footer`}
+            fields={[
+              { name: "dedication_by", label: "נבנה באהבה ע״י" },
+              { name: "dedication_to", label: "הקדשה", multiline: true },
+            ]}
+            values={settings ?? undefined}
+            disabled={pending}
+          />
         </div>
       </section>
+
+      <div>
+        <Button type="submit" disabled={pending}>
+          {pending ? "שומר…" : "שמירת הגדרות"}
+        </Button>
+      </div>
     </form>
   );
 }

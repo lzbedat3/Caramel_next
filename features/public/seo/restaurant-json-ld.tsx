@@ -1,11 +1,11 @@
 import {
-  buildRestaurantJsonLd,
+  buildSiteJsonLd,
   serializeJsonLd,
+  type SiteJsonLdInput,
 } from "@/lib/seo";
-import type { PublicSeoContent } from "@/services/public-seo";
 
-export function RestaurantJsonLd(props: PublicSeoContent) {
-  const data = buildRestaurantJsonLd(props);
+export function SiteJsonLd(props: SiteJsonLdInput) {
+  const data = buildSiteJsonLd(props);
   if (!data) {
     return null;
   }

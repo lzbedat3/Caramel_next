@@ -1,4 +1,6 @@
+import { TranslationFields } from "@/components/admin/translation-fields";
 import { cn } from "@/lib/cn";
+import type { TranslationKey } from "@/lib/translations";
 import type { AdminMenuCategoryOption } from "@/services/admin-menu";
 
 export const menuInputClassName =
@@ -11,6 +13,9 @@ type MenuItemFieldsProps = {
   shortDescription?: string;
   price?: string;
   categoryId?: number;
+  translations?: Partial<
+    Record<TranslationKey<"name" | "short_description">, string | null>
+  >;
   nameError?: string;
   priceError?: string;
   categoryError?: string;
@@ -24,6 +29,7 @@ export function MenuItemFields({
   shortDescription = "",
   price = "",
   categoryId,
+  translations,
   nameError,
   priceError,
   categoryError,
@@ -38,9 +44,12 @@ export function MenuItemFields({
     <div className="flex flex-col gap-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={nameId} className="text-sm font-medium text-foreground">
+          <label
+            htmlFor={nameId}
+            className="text-foreground text-sm font-medium"
+          >
             שם המנה
-            <span className="ms-1 text-caramel-deep" aria-hidden="true">
+            <span className="text-caramel-deep ms-1" aria-hidden="true">
               *
             </span>
           </label>
@@ -55,7 +64,11 @@ export function MenuItemFields({
             className={menuInputClassName}
           />
           {nameError ? (
-            <p id={`${nameId}-error`} role="alert" className="text-sm text-caramel-deep">
+            <p
+              id={`${nameId}-error`}
+              role="alert"
+              className="text-caramel-deep text-sm"
+            >
               {nameError}
             </p>
           ) : null}
@@ -63,10 +76,10 @@ export function MenuItemFields({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={categoryFieldId}
-            className="text-sm font-medium text-foreground"
+            className="text-foreground text-sm font-medium"
           >
             קטגוריה
-            <span className="ms-1 text-caramel-deep" aria-hidden="true">
+            <span className="text-caramel-deep ms-1" aria-hidden="true">
               *
             </span>
           </label>
@@ -87,7 +100,9 @@ export function MenuItemFields({
             </option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.isVisible ? category.name : `${category.name} (מוסתרת)`}
+                {category.isVisible
+                  ? category.name
+                  : `${category.name} (מוסתרת)`}
               </option>
             ))}
           </select>
@@ -95,7 +110,7 @@ export function MenuItemFields({
             <p
               id={`${categoryFieldId}-error`}
               role="alert"
-              className="text-sm text-caramel-deep"
+              className="text-caramel-deep text-sm"
             >
               {categoryError}
             </p>
@@ -105,7 +120,7 @@ export function MenuItemFields({
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor={descriptionId}
-          className="text-sm font-medium text-foreground"
+          className="text-foreground text-sm font-medium"
         >
           תיאור קצר
         </label>
@@ -118,10 +133,22 @@ export function MenuItemFields({
           className={cn(menuInputClassName, "resize-y leading-6")}
         />
       </div>
+      <TranslationFields
+        idPrefix={idPrefix}
+        fields={[
+          { name: "name", label: "שם המנה" },
+          { name: "short_description", label: "תיאור קצר", multiline: true },
+        ]}
+        values={translations}
+        disabled={disabled}
+      />
       <div className="flex max-w-56 flex-col gap-1.5">
-        <label htmlFor={priceId} className="text-sm font-medium text-foreground">
+        <label
+          htmlFor={priceId}
+          className="text-foreground text-sm font-medium"
+        >
           מחיר
-          <span className="ms-1 text-caramel-deep" aria-hidden="true">
+          <span className="text-caramel-deep ms-1" aria-hidden="true">
             *
           </span>
         </label>
@@ -140,16 +167,20 @@ export function MenuItemFields({
             }
             className={menuInputClassName}
           />
-          <span className="text-sm text-muted" aria-hidden="true">
+          <span className="text-muted text-sm" aria-hidden="true">
             ₪
           </span>
         </div>
         {priceError ? (
-          <p id={`${priceId}-error`} role="alert" className="text-sm text-caramel-deep">
+          <p
+            id={`${priceId}-error`}
+            role="alert"
+            className="text-caramel-deep text-sm"
+          >
             {priceError}
           </p>
         ) : (
-          <p id={`${priceId}-hint`} className="text-xs text-muted-soft">
+          <p id={`${priceId}-hint`} className="text-muted-soft text-xs">
             מספר בלבד, עד שתי ספרות אחרי הנקודה.
           </p>
         )}

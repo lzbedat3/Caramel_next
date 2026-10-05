@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
+import { brandAssets } from "@/config/brand-assets";
 import { pourTheme } from "@/config/pour-theme";
 import { createPainter } from "@/features/pour/engine/pour";
 
 type SplashProps = {
-  brand: string[];
   /** The pool has formed: the menu's own pour can begin underneath. */
   onDrain: () => void;
   onDone: () => void;
@@ -14,8 +14,8 @@ type SplashProps = {
 
 const SESSION_KEY = "pour-splash";
 const POUR_MS = 950;
-const DRAIN_MS = 1750;
-const END_MS = 2150;
+const DRAIN_MS = 2000;
+const END_MS = 2400;
 
 /** Whether the splash should play now: once per browser session, never under reduced motion. */
 export function shouldPlaySplash(): boolean {
@@ -46,9 +46,10 @@ const easeInOut = (t: number) =>
 const spring = (t: number) => 1 - Math.exp(-5 * t) * Math.cos(9 * t);
 
 // The first pour: one stream of caramel, drawn with the menu's own material, runs
-// down the dark screen and gathers into a pool that carries the name. Then the
-// page fades in beneath and its own pour continues from the brand.
-export function Splash({ brand, onDrain, onDone }: SplashProps) {
+// down the dark screen and gathers into a round pool, and the logo rises out of
+// it like a seal set in caramel. Then the page fades in beneath and its own
+// pour continues from the brand.
+export function Splash({ onDrain, onDone }: SplashProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const callbacks = useRef({ onDrain, onDone });
@@ -77,7 +78,10 @@ export function Splash({ brand, onDrain, onDone }: SplashProps) {
 
     const P = createPainter(pourTheme, DPR);
     const cx = W / 2;
-    const poolTop = H * 0.46;
+    // The badge, with a rim of caramel showing all around it.
+    const logo = Math.round(Math.min(W * 0.62, H * 0.36, 280));
+    const radius = logo / 2 + 13;
+    const poolTop = H * 0.5 - radius;
     // The stream: a gentle S from above the screen into the pool.
     const st = P.mkStrand();
     st.moveTo(cx, -40);
@@ -86,19 +90,11 @@ export function Splash({ brand, onDrain, onDone }: SplashProps) {
     st.lineTo(cx, poolTop + 70);
     const main = st.done(0.9);
     const sIn = main.S[poolIn] ?? main.len * 0.85;
-    const pool = P.mkBlob(
-      cx,
-      0,
-      Math.min(W * 0.4, 190),
-      60,
-      2.1,
-      120,
-      0.016,
-      2.45,
-    );
+    const pool = P.mkBlob(cx, 0, radius, radius, 2.1, 140, 0.012, 2);
     P.shiftBlob(pool, poolTop - pool.topY);
-    // The name sits at the pool's true vertical centre, whatever its shape.
+    // The logo sits at the pool's true vertical centre, whatever its shape.
     el.style.setProperty("--pool-y", `${(pool.topY + pool.botY) / 2}px`);
+    el.style.setProperty("--logo", `${logo}px`);
 
     let drained = false;
     let finished = false;
@@ -121,7 +117,10 @@ export function Splash({ brand, onDrain, onDone }: SplashProps) {
       const blobs = arrived > 0 ? [{ b: pool, e }] : [];
       P.drawScene(ctx, strands, blobs);
 
-      el.style.setProperty("--name", String(clamp((t - 1150) / 400, 0, 1)));
+      // The logo surfaces as the pool settles: a fade with one soft bounce.
+      const rise = clamp((t - 1050) / 650, 0, 1);
+      el.style.setProperty("--logo-in", String(clamp(rise * 2.2, 0, 1)));
+      el.style.setProperty("--logo-scale", String(0.8 + 0.2 * spring(rise)));
 
       if (!drained && t >= DRAIN_MS) {
         drained = true;
@@ -154,11 +153,14 @@ export function Splash({ brand, onDrain, onDone }: SplashProps) {
       }}
     >
       <canvas ref={canvas} className="splash-art" aria-hidden="true" />
-      <div className="splash-name" aria-hidden="true">
-        {brand.map((part, index) => (
-          <span key={index}>{part}</span>
-        ))}
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className="splash-logo"
+        src={brandAssets.logo}
+        alt=""
+        aria-hidden="true"
+        decoding="sync"
+      />
     </div>
   );
 }

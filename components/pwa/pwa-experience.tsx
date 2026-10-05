@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import type { Locale } from "@/config/locales";
 import { getDictionary } from "@/lib/i18n";
 
 type InstallEvent = Event & {
@@ -10,8 +11,8 @@ type InstallEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-export function PwaExperience() {
-  const strings = getDictionary();
+export function PwaExperience({ locale }: { locale: Locale }) {
+  const strings = getDictionary(locale);
   const [install, setInstall] = useState<InstallEvent | null>(null);
   const [ios, setIos] = useState(false);
   const [help, setHelp] = useState(false);

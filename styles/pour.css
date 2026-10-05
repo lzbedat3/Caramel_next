@@ -19,6 +19,9 @@ html:has(.pour)::-webkit-scrollbar {
   /* Latin only: the literal face has a Latin unicode-range, so Hebrew and Arabic
      fall through to Heebo and Cairo instead of a system fallback. */
   --font-ubuntu: Ubuntu;
+  /* The face for running text. English pages put Ubuntu first; Hebrew and
+     Arabic letters still fall through to Heebo and Cairo. */
+  --font-text: var(--font-heebo);
   position: relative;
   flex: 1;
   min-height: 100dvh;
@@ -27,7 +30,7 @@ html:has(.pour)::-webkit-scrollbar {
   background-size: 240px 240px;
   color: var(--cream);
   font-family:
-    var(--font-ubuntu), var(--font-heebo), var(--font-cairo), system-ui,
+    var(--font-ubuntu), var(--font-text), var(--font-cairo), system-ui,
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -151,18 +154,27 @@ html:has(.pour)::-webkit-scrollbar {
   }
   .eyebrow {
     position: absolute;
-    top: 26px;
+    top: 27px;
     left: 0;
     width: 100%;
+    padding: 0 64px;
     text-align: center;
-    direction: ltr;
     font:
-      500 9.5px/1 var(--font-ubuntu),
+      500 11px/1.2 var(--font-text),
       var(--font-cairo),
       sans-serif;
-    letter-spacing: 0.42em;
-    color: rgba(233, 164, 58, 0.72);
-    text-indent: 0.42em;
+    letter-spacing: 0.14em;
+    color: rgba(233, 164, 58, 0.78);
+  }
+  /* Arabic letters join, so they take no tracking; Latin capitals take more. */
+  .eyebrow:lang(ar) {
+    letter-spacing: 0;
+    font-size: 11.5px;
+  }
+  .eyebrow:lang(en) {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
   }
   .brand {
     position: absolute;
@@ -187,7 +199,7 @@ html:has(.pour)::-webkit-scrollbar {
   }
   .brand .heb {
     font:
-      800 42px/1 var(--font-heebo),
+      800 42px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: var(--cream);
@@ -214,7 +226,7 @@ html:has(.pour)::-webkit-scrollbar {
   .tag p {
     margin: 0;
     font:
-      200 35px/1.06 var(--font-heebo),
+      200 35px/1.06 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: var(--cream);
@@ -228,7 +240,7 @@ html:has(.pour)::-webkit-scrollbar {
     display: block;
     margin-top: 13px;
     font:
-      400 12.5px/1 var(--font-heebo),
+      400 12.5px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     letter-spacing: 0.02em;
@@ -261,7 +273,7 @@ html:has(.pour)::-webkit-scrollbar {
   .pool h2 {
     margin: 0;
     font:
-      800 31px/1 var(--font-heebo),
+      800 31px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     letter-spacing: -0.005em;
@@ -409,7 +421,7 @@ html:has(.pour)::-webkit-scrollbar {
     margin: 0;
     font:
       600 19.5px/1.14 var(--font-ubuntu),
-      var(--font-heebo),
+      var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: var(--cream);
@@ -441,7 +453,7 @@ html:has(.pour)::-webkit-scrollbar {
     display: block;
     margin-top: 7px;
     font:
-      400 11.5px/1.3 var(--font-heebo),
+      400 11.5px/1.3 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: rgba(183, 164, 138, 0.85);
@@ -465,7 +477,7 @@ html:has(.pour)::-webkit-scrollbar {
   #foot .bye h2 {
     margin: 0;
     font:
-      800 38px/1 var(--font-heebo),
+      800 38px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: rgba(245, 232, 210, 0.62);
@@ -499,7 +511,7 @@ html:has(.pour)::-webkit-scrollbar {
     width: 100%;
     font:
       300 15px/1.5 var(--font-ubuntu),
-      var(--font-heebo),
+      var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: var(--muted);
@@ -547,7 +559,7 @@ html:has(.pour)::-webkit-scrollbar {
     background: none;
     cursor: pointer;
     font:
-      600 14px/34px var(--font-heebo),
+      600 14px/34px var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: rgba(245, 232, 210, 0.74);
@@ -689,7 +701,7 @@ html:has(.pour)::-webkit-scrollbar {
     display: block;
     margin-bottom: 9px;
     font:
-      500 12.5px/1 var(--font-heebo),
+      500 12.5px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     letter-spacing: 0.14em;
@@ -699,7 +711,7 @@ html:has(.pour)::-webkit-scrollbar {
     margin: 0;
     font:
       700 29px/1.12 var(--font-ubuntu),
-      var(--font-heebo),
+      var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: var(--cream);
@@ -710,7 +722,7 @@ html:has(.pour)::-webkit-scrollbar {
     margin: 10px auto 0;
     max-width: 290px;
     font:
-      300 16px/1.5 var(--font-heebo),
+      300 16px/1.5 var(--font-text),
       var(--font-ubuntu),
       var(--font-cairo),
       sans-serif;
@@ -812,7 +824,7 @@ html:has(.pour)::-webkit-scrollbar {
     align-items: center;
     gap: 8px;
     font:
-      400 15px/1.4 var(--font-heebo),
+      400 15px/1.4 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: var(--cream);
@@ -831,7 +843,7 @@ html:has(.pour)::-webkit-scrollbar {
     border-radius: 999px;
     text-decoration: none;
     font:
-      700 16px/1 var(--font-heebo),
+      700 16px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: #2a1003;
@@ -911,7 +923,7 @@ html:has(.pour)::-webkit-scrollbar {
     width: 100%;
     border-top: 1px solid rgba(245, 232, 210, 0.1);
     font:
-      400 12.5px/1.6 var(--font-heebo),
+      400 12.5px/1.6 var(--font-text),
       var(--font-ubuntu),
       var(--font-cairo),
       sans-serif;
@@ -935,7 +947,7 @@ html:has(.pour)::-webkit-scrollbar {
     border-radius: 999px;
     cursor: pointer;
     font:
-      700 17px/1 var(--font-heebo),
+      700 17px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: #2a1003;
@@ -987,7 +999,7 @@ html:has(.pour)::-webkit-scrollbar {
     border: 1px solid rgba(255, 230, 190, 0.5);
     color: #2a1505;
     font:
-      700 15px/1 var(--font-heebo),
+      700 15px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     background: radial-gradient(
@@ -1062,7 +1074,7 @@ html:has(.pour)::-webkit-scrollbar {
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     padding: max(18px, env(safe-area-inset-top)) 20px
       calc(20px + env(safe-area-inset-bottom));
-    font-family: var(--font-heebo), var(--font-cairo), sans-serif;
+    font-family: var(--font-text), var(--font-cairo), sans-serif;
   }
   &.ct-open #ct-sheet {
     transform: none;
@@ -1076,7 +1088,7 @@ html:has(.pour)::-webkit-scrollbar {
   #ct-sheet h3 {
     margin: 0;
     font:
-      900 30px/1.1 var(--font-heebo),
+      900 30px/1.1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     letter-spacing: -0.02em;
@@ -1180,7 +1192,7 @@ html:has(.pour)::-webkit-scrollbar {
     border-radius: 999px;
     cursor: pointer;
     font:
-      700 17px/1 var(--font-heebo),
+      700 17px/1 var(--font-text),
       var(--font-cairo),
       sans-serif;
     color: #2a1003;
@@ -1356,7 +1368,7 @@ html:has(.pour)::-webkit-scrollbar {
     padding: 14%;
     text-align: center;
     font:
-      600 15px/1.15 var(--font-heebo),
+      600 15px/1.15 var(--font-text),
       var(--font-ubuntu),
       var(--font-cairo),
       sans-serif;
@@ -1411,7 +1423,7 @@ html:has(.pour)::-webkit-scrollbar {
     max-width: 320px;
     margin: 14px auto 0;
     font:
-      300 14.5px/1.6 var(--font-heebo),
+      300 14.5px/1.6 var(--font-text),
       var(--font-ubuntu),
       var(--font-cairo),
       sans-serif;
@@ -1426,7 +1438,7 @@ html:has(.pour)::-webkit-scrollbar {
     border-radius: 22px;
     box-shadow: inset 0 0 0 1px rgba(245, 232, 210, 0.16);
     font:
-      400 14.5px/1.3 var(--font-heebo),
+      400 14.5px/1.3 var(--font-text),
       var(--font-ubuntu),
       var(--font-cairo),
       sans-serif;
@@ -1452,9 +1464,11 @@ html:has(.pour)::-webkit-scrollbar {
   }
   #lnk .hrs .lb {
     font-weight: 500;
+    white-space: nowrap;
   }
   #lnk .hrs .td {
     direction: ltr;
+    white-space: nowrap;
     font-family: var(--font-ubuntu), sans-serif;
     color: var(--muted);
   }
@@ -1551,37 +1565,23 @@ html:has(.pour)::-webkit-scrollbar {
   z-index: 90;
   background: #0d0806;
   cursor: pointer;
-  animation: splash-fade 0.45s ease 1.75s both;
+  animation: splash-fade 0.45s ease 2s both;
 }
 .pour .splash-art {
   position: absolute;
   inset: 0;
 }
-.pour .splash-name {
+.pour .splash-logo {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
   top: var(--pool-y, 50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.3em;
-  direction: ltr;
-  transform: translateY(-50%);
-  line-height: 1;
-  font:
-    700 34px/1 var(--font-ubuntu),
-    var(--font-heebo),
-    var(--font-cairo),
-    sans-serif;
-  letter-spacing: -0.03em;
-  color: #2a1003;
-  text-shadow: 0 1px 0 rgba(255, 221, 150, 0.5);
-  opacity: var(--name, 0);
-}
-.pour .splash-name span:nth-child(2) {
-  font-family: var(--font-heebo), var(--font-cairo), sans-serif;
-  font-weight: 800;
+  width: var(--logo, 220px);
+  height: var(--logo, 220px);
+  transform: translate(-50%, -50%) scale(var(--logo-scale, 0.8));
+  opacity: var(--logo-in, 0);
+  filter: drop-shadow(0 6px 14px rgba(42, 16, 3, 0.55));
+  -webkit-user-drag: none;
+  user-select: none;
 }
 @keyframes splash-fade {
   to {
@@ -1595,7 +1595,7 @@ html:has(.pour)::-webkit-scrollbar {
   width: 100%;
   margin-top: 10px;
   font:
-    400 13px/1.7 var(--font-heebo),
+    400 13px/1.7 var(--font-text),
     var(--font-ubuntu),
     var(--font-cairo),
     sans-serif;
@@ -1666,7 +1666,7 @@ html:has(.pour)::-webkit-scrollbar {
   box-shadow: inset 0 0 0 1px rgba(245, 232, 210, 0.18);
   color: var(--muted);
   font:
-    500 13.5px/1 var(--font-heebo),
+    500 13.5px/1 var(--font-text),
     var(--font-ubuntu),
     var(--font-cairo),
     sans-serif;
@@ -1681,9 +1681,717 @@ html:has(.pour)::-webkit-scrollbar {
   margin: 0;
   max-width: 280px;
   font:
-    400 12.5px/1.6 var(--font-heebo),
+    400 12.5px/1.6 var(--font-text),
     var(--font-ubuntu),
     var(--font-cairo),
     sans-serif;
   color: var(--muted);
+}
+
+.pour:lang(en) {
+  --font-text: var(--font-ubuntu), var(--font-heebo);
+}
+/* Literal family names: Heebo's synthetic fallback face covers every script
+   and would catch Arabic letters before they reach Cairo. */
+.pour:lang(ar) {
+  --font-text: Cairo, var(--font-heebo);
+}
+
+/* The language bead in the corner of the opening screen. It scrolls away with
+   the hero, so it never sits over the dishes or the category bar. */
+.pour #lang {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  z-index: 6;
+  font:
+    500 12px/1 var(--font-text),
+    var(--font-cairo),
+    sans-serif;
+}
+.pour #lang > button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 11px 0 9px;
+  border: 1px solid rgba(246, 192, 98, 0.28);
+  border-radius: 999px;
+  background: rgba(24, 12, 5, 0.55);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  color: var(--cream);
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 221, 150, 0.14),
+    0 6px 18px rgba(0, 0, 0, 0.35);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.pour #lang > button svg {
+  width: 15px;
+  height: 15px;
+  color: var(--gold);
+}
+.pour #lang[data-open] > button,
+.pour #lang > button:hover {
+  border-color: rgba(246, 192, 98, 0.6);
+  background: rgba(42, 17, 4, 0.8);
+}
+.pour #lang ul {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  min-width: 136px;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  border: 1px solid rgba(246, 192, 98, 0.24);
+  border-radius: 18px;
+  background: rgba(24, 12, 5, 0.86);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 221, 150, 0.12),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+  transform-origin: top;
+  transform: translateY(-6px) scale(0.94);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.25),
+    opacity 0.18s ease,
+    visibility 0s linear 0.26s;
+}
+.pour #lang[data-open] ul {
+  transform: none;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.pour #lang a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 13px;
+  color: var(--cream);
+  font-size: 14.5px;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+.pour #lang a:lang(he) {
+  font-family: var(--font-heebo), sans-serif;
+}
+.pour #lang a:lang(ar) {
+  font-family: var(--font-cairo), sans-serif;
+}
+.pour #lang a:lang(en) {
+  font-family: var(--font-ubuntu), sans-serif;
+}
+.pour #lang a:hover {
+  background: rgba(246, 192, 98, 0.1);
+}
+/* The chosen language is a drop of the pour itself. */
+.pour #lang a[aria-current] {
+  color: #2a1003;
+  font-weight: 700;
+  background: linear-gradient(180deg, #f6c062 0%, #e39a2c 55%, #b9690f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 204, 0.75),
+    inset 0 -2px 4px rgba(90, 40, 4, 0.35);
+}
+.pour #lang a[aria-current]::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2a1003;
+  opacity: 0.75;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pour #lang ul {
+    transition: none;
+  }
+}
+
+/* The logo closes the menu like a wax seal above the signature. */
+.pour #foot .sig .seal {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 26px rgba(233, 164, 58, 0.16));
+}
+
+/* On a desktop the menu is a narrow column; the logo rests in the margin
+   beside it, fixed, clear of the pour. Phones never load it. */
+.pour #mark {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .pour #mark {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: calc((100vw - 460px) / 4);
+    width: clamp(200px, 19vw, 300px);
+    height: auto;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    pointer-events: none;
+    filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55))
+      drop-shadow(0 0 60px rgba(233, 164, 58, 0.14));
+  }
+}
+
+/* English labels run longer; the hours row gives a little to stay on one line. */
+.pour:lang(en) #lnk .hrs summary {
+  gap: 7px;
+  padding: 0 13px;
+  font-size: 13.5px;
+}
+
+/* Category pictures in the floating bar. The artwork is shown whole, as it
+   was drawn, above its name; the caramel pool sits under the name. The active
+   picture lifts and grows, the others rest a little dimmer. */
+.pour #nav:has(button img) {
+  border-radius: 30px;
+  padding: 6px 8px 7px;
+}
+.pour #nav button:has(img) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  min-width: 78px;
+  padding: 0 9px;
+  font-size: 13px;
+  line-height: 26px;
+}
+.pour #nav button img {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  margin-bottom: 1px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)) saturate(0.82)
+    brightness(0.86);
+  transform: scale(0.88);
+  transform-origin: 50% 70%;
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    filter 0.4s ease;
+}
+.pour #nav button.on img {
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 14px rgba(246, 192, 98, 0.35));
+  transform: scale(1.06) translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pour #nav button img {
+    transition: none;
+  }
+}
+
+/* The uploaded main photos, in the margin opposite the logo on wide screens. */
+.pour #gallery {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .pour #gallery {
+    display: block;
+    position: fixed;
+    top: 50%;
+    right: calc((100vw - 460px) / 4);
+    width: clamp(220px, 22vw, 340px);
+    aspect-ratio: 3 / 2;
+    transform: translate(50%, -50%) rotate(2deg);
+    z-index: 1;
+    pointer-events: none;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #150d08;
+    box-shadow:
+      0 0 0 1px rgba(246, 192, 98, 0.3),
+      0 0 0 7px rgba(24, 12, 5, 0.7),
+      0 0 0 8px rgba(246, 192, 98, 0.16),
+      0 26px 60px rgba(0, 0, 0, 0.6);
+  }
+  .pour #gallery img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transform: scale(1.06);
+    transition:
+      opacity 1.4s ease,
+      transform 7s ease-out;
+  }
+  .pour #gallery img[data-on] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The staff door: a single dim drop under everything. It glows when found. */
+.pour #after .gate {
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin: 14px auto 0;
+  position: relative;
+  border-radius: 50%;
+}
+.pour #after .gate::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 9px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  transform: translate(-50%, -50%) rotate(180deg);
+  background: linear-gradient(180deg, #f6c062, #b9690f);
+  opacity: 0.22;
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    box-shadow 0.3s ease;
+}
+.pour #after .gate:hover::before,
+.pour #after .gate:focus-visible::before,
+.pour #after .gate:active::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(180deg) scale(1.5);
+  box-shadow: 0 0 14px rgba(246, 192, 98, 0.6);
+}
+
+/* The branch under the open/closed line, shown when there are several. */
+.pour .tag small.loc {
+  margin-top: 7px;
+  color: var(--muted);
+}
+
+/* Links to every branch, above the social links. */
+.pour #lnk .brs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font:
+    400 13px/1 var(--font-text),
+    var(--font-cairo),
+    sans-serif;
+  color: var(--muted);
+}
+.pour #lnk .brs span {
+  width: 100%;
+  margin-bottom: 2px;
+}
+.pour #lnk .brs a {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 15px;
+  border: 1px solid rgba(246, 192, 98, 0.26);
+  border-radius: 999px;
+  color: var(--cream);
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.pour #lnk .brs a:hover {
+  border-color: rgba(246, 192, 98, 0.6);
+  background: rgba(246, 192, 98, 0.08);
+}
+.pour #lnk .brs a[aria-current] {
+  border-color: transparent;
+  color: #2a1003;
+  font-weight: 700;
+  background: linear-gradient(180deg, #f6c062 0%, #e39a2c 55%, #b9690f 100%);
+}
+
+/* The branch chooser: the menu's room, with one card per branch. */
+.pour-chooser main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: clamp(72px, 13dvh, 130px) 20px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.pour-chooser .seal {
+  width: clamp(132px, 38vw, 168px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 40px rgba(233, 164, 58, 0.18));
+}
+.pour-chooser .eyebrow {
+  position: static;
+  margin: 26px 0 0;
+  padding: 0;
+}
+.pour-chooser h1 {
+  margin: 10px 0 0;
+  font:
+    800 30px/1.15 var(--font-text),
+    var(--font-cairo),
+    sans-serif;
+  letter-spacing: -0.01em;
+}
+.pour-chooser ul {
+  width: 100%;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pour-chooser li a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 16px;
+  border: 1px solid rgba(246, 192, 98, 0.22);
+  border-radius: 24px;
+  background: rgba(24, 12, 5, 0.6);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 221, 150, 0.12),
+    0 16px 36px rgba(0, 0, 0, 0.4);
+  color: var(--cream);
+  text-align: start;
+  text-decoration: none;
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.pour-chooser li a:hover,
+.pour-chooser li a:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(246, 192, 98, 0.65);
+  background: rgba(42, 17, 4, 0.8);
+}
+.pour-chooser .pin {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: #2a1003;
+  background: linear-gradient(180deg, #f6c062 0%, #e39a2c 55%, #b9690f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 204, 0.75),
+    inset 0 -3px 6px rgba(90, 40, 4, 0.35);
+}
+.pour-chooser .pin svg {
+  width: 22px;
+  height: 22px;
+}
+.pour-chooser .txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pour-chooser .txt b {
+  font:
+    700 19px/1.2 var(--font-text),
+    var(--font-cairo),
+    sans-serif;
+}
+.pour-chooser .txt small {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.pour-chooser .st {
+  flex: none;
+  font-size: 12px;
+  white-space: nowrap;
+  color: #f08a8a;
+}
+.pour-chooser .st[data-open] {
+  color: #7fd18f;
+}
+.pour-chooser .st::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+}
+
+/* Everything under the stage: the reviews, then the staff door. Normal page
+   flow, so opening the form only makes the page longer. */
+.pour #after {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 6px 22px calc(18px + env(safe-area-inset-bottom));
+}
+.pour #reviews {
+  padding-top: 26px;
+  border-top: 1px solid rgba(245, 232, 210, 0.1);
+  text-align: center;
+  font:
+    400 14px/1.6 var(--font-text),
+    var(--font-cairo),
+    sans-serif;
+  color: var(--cream);
+}
+.pour #reviews h2 {
+  margin: 0;
+  font:
+    200 27px/1.15 var(--font-text),
+    var(--font-cairo),
+    sans-serif;
+  letter-spacing: -0.01em;
+}
+.pour #reviews .rv-empty {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+.pour #reviews .rv-sum {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  text-align: start;
+}
+.pour #reviews .rv-sum b {
+  font:
+    700 42px/1 var(--font-ubuntu),
+    sans-serif;
+  color: var(--gold);
+}
+.pour #reviews .rv-sum span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pour #reviews .rv-sum small {
+  font-size: 12.5px;
+  line-height: 1;
+  color: var(--muted);
+}
+.pour #reviews .stars {
+  display: inline-flex;
+  gap: 2px;
+  direction: ltr;
+}
+.pour #reviews .stars svg {
+  width: 15px;
+  height: 15px;
+  fill: rgba(245, 232, 210, 0.18);
+}
+.pour #reviews .stars svg[data-on] {
+  fill: var(--gold);
+}
+.pour #reviews ul {
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: start;
+}
+.pour #reviews li {
+  padding: 14px 16px;
+  border: 1px solid rgba(246, 192, 98, 0.16);
+  border-radius: 20px;
+  background: rgba(24, 12, 5, 0.5);
+}
+.pour #reviews .rv-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pour #reviews .rv-head b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 15px;
+}
+.pour #reviews li p {
+  margin: 6px 0 0;
+  color: rgba(245, 232, 210, 0.86);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.pour #reviews li small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.pour #reviews .rv-more,
+.pour #reviews .rv-cancel {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font-size: 13.5px;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.pour #reviews .rv-cancel {
+  margin-top: 0;
+  color: var(--muted);
+}
+.pour #reviews .rv-write,
+.pour #reviews .rv-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  margin-top: 18px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 999px;
+  color: #2a1003;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #f6c062 0%, #e39a2c 55%, #b9690f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 204, 0.75),
+    inset 0 -3px 6px rgba(90, 40, 4, 0.35),
+    0 12px 26px rgba(226, 130, 36, 0.22);
+}
+.pour #reviews .rv-send {
+  margin-top: 0;
+}
+.pour #reviews .rv-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.pour #reviews .rv-note {
+  margin: 16px 0 0;
+  color: #7fd18f;
+}
+.pour #reviews .rv-note[data-error] {
+  margin: 0;
+  color: #f6b1b1;
+}
+.pour #reviews .rv-form {
+  margin-top: 18px;
+  padding: 18px 16px 16px;
+  border: 1px solid rgba(246, 192, 98, 0.22);
+  border-radius: 24px;
+  background: rgba(24, 12, 5, 0.62);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: start;
+}
+/* Hidden in place. Pushing it off-screen would widen a right-to-left page
+   and let the view slide sideways into empty space. */
+.pour #reviews .rv-trap {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+}
+.pour #reviews .rv-rate {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  direction: ltr;
+}
+.pour #reviews .rv-rate button {
+  width: 44px;
+  height: 44px;
+  padding: 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.5);
+}
+.pour #reviews .rv-rate button:active {
+  transform: scale(0.88);
+}
+.pour #reviews .rv-rate svg {
+  width: 100%;
+  height: 100%;
+  fill: rgba(245, 232, 210, 0.16);
+  transition: fill 0.15s ease;
+}
+.pour #reviews .rv-rate button[data-on] svg {
+  fill: var(--gold);
+  filter: drop-shadow(0 0 8px rgba(246, 192, 98, 0.45));
+}
+.pour #reviews .rv-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pour #reviews label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.pour #reviews input,
+.pour #reviews textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid rgba(245, 232, 210, 0.14);
+  border-radius: 14px;
+  background: rgba(13, 8, 6, 0.6);
+  color: var(--cream);
+  font: inherit;
+  /* 16px keeps iOS from zooming the page on focus. */
+  font-size: 16px;
+  outline: none;
+  resize: vertical;
+}
+.pour #reviews input:focus-visible,
+.pour #reviews textarea:focus-visible {
+  border-color: rgba(246, 192, 98, 0.7);
+  box-shadow: 0 0 0 4px rgba(233, 164, 58, 0.16);
+}
+.pour #reviews .rv-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }

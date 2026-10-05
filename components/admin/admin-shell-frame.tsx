@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+
+import { routes } from "@/config/routes";
 import { CloseIcon, MenuGlyphIcon } from "@/components/icons";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { siteConfig } from "@/config/site";
@@ -96,7 +99,15 @@ export function AdminShellFrame({
               )}
             </div>
           </div>
-          <SignOutButton />
+          <div className="flex items-center gap-1">
+            <Link
+              href={routes.home}
+              className="rounded-control px-3 py-2 text-sm text-muted transition hover:bg-surface-warm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              לתפריט
+            </Link>
+            <SignOutButton />
+          </div>
         </header>
         <div className="flex min-h-0 flex-1 flex-col overflow-x-hidden">
           {children}

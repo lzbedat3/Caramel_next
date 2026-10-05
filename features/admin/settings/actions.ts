@@ -7,8 +7,11 @@ import {
   validateSiteSettingsInput,
   type SiteSettingsFieldErrors,
   type SiteSettingsInput,
+  normalizedCreditUrl,
 } from "@/lib/admin/site-settings";
 import { currentUserIsAdmin, getAuthClaims } from "@/lib/auth/session";
+import { emptyToNull } from "@/lib/seo";
+import { readTranslations } from "@/lib/translations";
 import { createClient } from "@/lib/supabase/server";
 
 export type SaveSettingsState = {
@@ -61,6 +64,11 @@ export async function saveSiteSettings(
   const payload = {
     id: 1 as const,
     ...normalizedSiteSettings(input),
+    credit_name: emptyToNull(String(formData.get("credit_name") ?? "")),
+    credit_url: normalizedCreditUrl(String(formData.get("credit_url") ?? "")),
+    dedication_by: emptyToNull(String(formData.get("dedication_by") ?? "")),
+    dedication_to: emptyToNull(String(formData.get("dedication_to") ?? "")),
+    ...readTranslations(formData, ["dedication_by", "dedication_to"] as const),
   };
 
   const { error } = await supabase.from("site_settings").upsert(payload, {

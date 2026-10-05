@@ -50,6 +50,17 @@ export async function encodeWebImage(
       return null;
     }
 
+    // A WebP that already fits and barely shrinks is left alone; encoding it
+    // again on every run would only wear the picture down.
+    if (
+      meta.format === "webp" &&
+      width <= maxEdge &&
+      height <= maxEdge &&
+      bytes.byteLength >= input.byteLength * 0.9
+    ) {
+      return "skip";
+    }
+
     return { bytes, mime: WEB_IMAGE_OUTPUT_MIME };
   } catch {
     return null;

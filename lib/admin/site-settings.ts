@@ -43,6 +43,22 @@ export function validateSiteSettingsInput(
   return errors;
 }
 
+// The credit link is shown publicly, so only a real web address is stored.
+export function normalizedCreditUrl(raw: string): string | null {
+  const value = raw.trim();
+  if (!value) {
+    return null;
+  }
+  try {
+    const url = new URL(value.includes("://") ? value : `https://${value}`);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function normalizedSiteSettings(input: SiteSettingsInput) {
   return {
     seo_title: emptyToNull(input.seoTitle),

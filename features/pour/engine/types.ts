@@ -35,5 +35,5 @@ export type PourCallbacks = {
 export type PourHandle = {
   destroy(): void;
   relayout(): void;
-  categoryTop(index: number): number;
+  categoryTop(index: number, barBottom?: number): number;
 };

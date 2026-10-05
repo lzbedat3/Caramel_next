@@ -1,24 +1,26 @@
 import Image, { getImageProps } from "next/image";
 
+import { brandAssets } from "@/config/brand-assets";
+import { localeMeta, menuPath, type Locale } from "@/config/locales";
+import { routes } from "@/config/routes";
 import { siteConfig } from "@/config/site";
 import { Ending } from "@/features/pour/ending";
+import { OpenStatus } from "@/features/pour/live-hours";
+import { ReviewsSection } from "@/features/pour/reviews/reviews-section";
+import { SideGallery } from "@/features/pour/side-gallery";
 import {
   PourStage,
   type StageDish,
   type StageImage,
 } from "@/features/pour/pour-stage";
-import { getDictionary } from "@/lib/i18n";
-import {
-  getWeekdayInTimeZone,
-  getWeeklyHoursRows,
-  isRestaurantOpen,
-} from "@/lib/opening-hours";
+import { format, getDictionary } from "@/lib/i18n";
 import { formatPriceParts } from "@/lib/price";
 import { isRemoteSvg } from "@/lib/storage-url";
 import type { PublicHomeContent } from "@/services/public-home";
 
 const RING_SIZES = "170px";
 const DETAIL_SIZES = "(max-width: 460px) 100vw, 400px";
+const GALLERY_SIZES = "(min-width: 1100px) 24vw, 1px";
 const PRIORITY_DISHES = 3;
 const HEBREW_OR_ARABIC = /[֐-׿؀-ۿ]/;
 
@@ -57,27 +59,29 @@ function pad(value: number): string {
 }
 
 export function PourMenu({
+  locale,
   profile,
   hours,
+  heroSlides,
   categories,
   menuItems,
   socialLinks,
-}: PublicHomeContent) {
-  const strings = getDictionary();
+  footer,
+  location,
+  locations,
+  reviews,
+}: PublicHomeContent & { locale: Locale }) {
+  const strings = getDictionary(locale);
   const name = profile?.name?.trim() || null;
   const subtitle = profile?.subtitle?.trim() || null;
   const brand = brandParts(name ?? siteConfig.name);
   const taglineWords = subtitle ? subtitle.split(/\s+/) : [];
   const now = new Date();
   const liveHours = profile ? hours : [];
-  const isOpen = isRestaurantOpen(liveHours, now, siteConfig.timeZone);
-  const hourRows = getWeeklyHoursRows(
-    liveHours,
-    getWeekdayInTimeZone(now, siteConfig.timeZone),
-  );
+  const renderedAt = now.getTime();
   // Sides alternate; a left-to-right locale mirrors them.
   const sides: ["R", "L"] | ["L", "R"] =
-    siteConfig.dir === "rtl" ? ["R", "L"] : ["L", "R"];
+    localeMeta[locale].dir === "rtl" ? ["R", "L"] : ["L", "R"];
 
   const groups = (profile ? categories : []).map((category) => ({
     category,
@@ -108,10 +112,14 @@ export function PourMenu({
       categories={groups.map(({ category }) => ({
         id: category.id,
         name: category.name,
+        image: category.imageSrc
+          ? imageSources(category.imageSrc, 104, 104)
+          : null,
       }))}
       strings={strings}
       storageKey={`pour-table:${siteConfig.url}`}
-      brand={brand}
+      locale={locale}
+      locationSlug={location?.slug ?? null}
     >
       <a
         href="#stage"
@@ -122,6 +130,16 @@ export function PourMenu({
       <noscript>
         <style>{".pour #stage{opacity:1}"}</style>
       </noscript>
+      <SideGallery
+        slides={(profile ? heroSlides : [])
+          .filter((slide) => slide.type === "image")
+          .map((slide) => ({
+            id: slide.id,
+            alt: slide.alt,
+            durationMs: slide.durationMs,
+            ...imageSources(slide.src, 640, 427, GALLERY_SIZES),
+          }))}
+      />
       <main id="stage" data-menu={dishes.length > 0 ? "complete" : undefined}>
         <svg id="track" aria-hidden="true">
           <path
@@ -137,9 +155,7 @@ export function PourMenu({
           <canvas id="dyn" />
         </div>
         <header id="hero">
-          {siteConfig.eyebrow ? (
-            <div className="eyebrow">{siteConfig.eyebrow}</div>
-          ) : null}
+          <div className="eyebrow">{strings.eyebrow}</div>
           <h1 className="brand">
             <span className={scriptClass(brand[0] ?? "")}>{brand[0]}</span>
             <i id="dot" />
@@ -160,8 +176,17 @@ export function PourMenu({
             {!profile ? (
               <small>{strings.menuUnavailable}</small>
             ) : liveHours.length > 0 ? (
-              <small className="st" data-open={isOpen ? "" : undefined}>
-                {isOpen ? strings.open : strings.closed}
+              <OpenStatus
+                as="small"
+                hours={liveHours}
+                renderedAt={renderedAt}
+                openLabel={strings.open}
+                closedLabel={strings.closed}
+              />
+            ) : null}
+            {profile && location && locations.length > 1 ? (
+              <small className="loc">
+                {format(strings.branch, { name: location.name })}
               </small>
             ) : null}
           </div>
@@ -236,15 +261,45 @@ export function PourMenu({
           name={name}
           subtitle={subtitle}
           about={profile?.about?.trim() || null}
-          address={profile?.address?.trim() || null}
-          wazeUrl={profile?.waze_url?.trim() || null}
-          phone={profile?.phone?.trim() || null}
-          hourRows={hourRows}
-          isOpen={isOpen}
+          address={location?.address ?? null}
+          wazeUrl={location?.wazeUrl ?? null}
+          phone={location?.phone ?? null}
+          branches={
+            profile && locations.length > 1
+              ? locations.map((entry) => ({
+                  name: entry.name,
+                  href: menuPath(locale, entry.slug),
+                  current: entry.id === location?.id,
+                }))
+              : []
+          }
+          hours={liveHours}
+          renderedAt={renderedAt}
+          locale={locale}
+          logoSrc={brandAssets.logoMark}
           socialLinks={profile ? socialLinks : []}
+          footer={footer}
           strings={strings}
         />
       </main>
+      {/* Under the stage, in normal flow: nothing here can move the pour. */}
+      <div id="after">
+        {profile ? (
+          <ReviewsSection
+            reviews={reviews}
+            locale={locale}
+            locationId={location?.id ?? null}
+            strings={strings}
+          />
+        ) : null}
+        {/* The staff door: one quiet drop at the very bottom of the page. */}
+        <a
+          className="gate"
+          href={routes.admin}
+          rel="nofollow"
+          aria-label={strings.staffEntrance}
+        />
+      </div>
     </PourStage>
   );
 }
