@@ -11,6 +11,7 @@ import {
   validateMenuItemMetadata,
 } from "@/lib/admin/menu-item";
 import { currentUserIsAdmin, getAuthClaims } from "@/lib/auth/session";
+import { readTranslations } from "@/lib/translations";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/types/database";
 
@@ -18,6 +19,8 @@ export type MenuItemActionState = {
   status: "idle" | "saved" | "error";
   message: string | null;
 };
+
+const MENU_ITEM_TRANSLATED_FIELDS = ["name", "short_description"] as const;
 
 async function requireAdminClient() {
   const claims = await getAuthClaims();
@@ -106,7 +109,10 @@ async function rewriteCategoryItemOrder(
 
   const updates = await Promise.all(
     data.map((row, index) =>
-      supabase.from("menu_items").update({ sort_order: index }).eq("id", row.id),
+      supabase
+        .from("menu_items")
+        .update({ sort_order: index })
+        .eq("id", row.id),
     ),
   );
 
@@ -174,6 +180,7 @@ export async function createMenuItem(
   const payload: TablesInsert<"menu_items"> = {
     name: metadata.name.trim(),
     short_description: emptyToNull(metadata.shortDescription),
+    ...readTranslations(formData, MENU_ITEM_TRANSLATED_FIELDS),
     price: price.value,
     category_id: categoryId,
     storage_path: replacementPath,
@@ -271,6 +278,7 @@ export async function updateMenuItem(
     .update({
       name: metadata.name.trim(),
       short_description: emptyToNull(metadata.shortDescription),
+      ...readTranslations(formData, MENU_ITEM_TRANSLATED_FIELDS),
       price: price.value,
       category_id: categoryId,
       storage_path: nextPath,

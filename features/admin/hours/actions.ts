@@ -72,10 +72,12 @@ async function persistDayOrder(
 async function rewriteDayOrder(
   supabase: Awaited<ReturnType<typeof createClient>>,
   day: Weekday,
+  locationId: number,
 ): Promise<boolean> {
   const { data, error } = await supabase
     .from("opening_hours")
     .select("id")
+    .eq("location_id", locationId)
     .eq("day_of_week", day)
     .order("sort_order", { ascending: true })
     .order("id", { ascending: true });
@@ -90,13 +92,21 @@ async function rewriteDayOrder(
   );
 }
 
+// Hours belong to a branch: every read and write below is scoped to one.
+function parseLocationId(formData: FormData): number | null {
+  const id = Number(formData.get("location_id"));
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 async function loadDayRows(
   supabase: Awaited<ReturnType<typeof createClient>>,
   day: Weekday,
+  locationId: number,
 ) {
   return supabase
     .from("opening_hours")
     .select("*")
+    .eq("location_id", locationId)
     .eq("day_of_week", day)
     .order("sort_order", { ascending: true })
     .order("id", { ascending: true });
@@ -115,7 +125,16 @@ export async function createHourInterval(
     return { status: "error", message: "יום השבוע אינו תקין" };
   }
 
-  const { data: existing, error: loadError } = await loadDayRows(supabase, day);
+  const locationId = parseLocationId(formData);
+  if (!locationId) {
+    return { status: "error", message: "יש לבחור סניף" };
+  }
+
+  const { data: existing, error: loadError } = await loadDayRows(
+    supabase,
+    day,
+    locationId,
+  );
   if (loadError || !existing) {
     return { status: "error", message: "לא הצלחנו לטעון את השעות ליום זה" };
   }
@@ -136,7 +155,9 @@ export async function createHourInterval(
     return { status: "error", message: "שעה לא תקינה" };
   }
 
-  const closedIds = existing.filter((row) => row.is_closed).map((row) => row.id);
+  const closedIds = existing
+    .filter((row) => row.is_closed)
+    .map((row) => row.id);
   if (closedIds.length > 0) {
     const { error: deleteClosedError } = await supabase
       .from("opening_hours")
@@ -150,6 +171,7 @@ export async function createHourInterval(
 
   const openCount = existing.filter((row) => !row.is_closed).length;
   const payload: TablesInsert<"opening_hours"> = {
+    location_id: locationId,
     day_of_week: day,
     is_closed: false,
     opens_at: opens.value,
@@ -163,7 +185,7 @@ export async function createHourInterval(
     return { status: "error", message: "שמירת המשמרת נכשלה. נסו שוב" };
   }
 
-  await rewriteDayOrder(supabase, day);
+  await rewriteDayOrder(supabase, day, locationId);
   revalidateHoursSurfaces();
   return { status: "saved", message: "המשמרת נוספה" };
 }
@@ -219,6 +241,7 @@ export async function updateHourInterval(
   const { data: siblings, error: siblingsError } = await loadDayRows(
     supabase,
     existing.day_of_week,
+    existing.location_id,
   );
   if (siblingsError || !siblings) {
     return { status: "error", message: "לא הצלחנו לבדוק משמרות אחרות ביום זה" };
@@ -273,7 +296,7 @@ export async function deleteHourInterval(
 
   const { data: existing, error: loadError } = await supabase
     .from("opening_hours")
-    .select("id, day_of_week, is_closed")
+    .select("id, day_of_week, is_closed, location_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -286,7 +309,7 @@ export async function deleteHourInterval(
     return { status: "error", message: "המחיקה נכשלה. נסו שוב" };
   }
 
-  await rewriteDayOrder(supabase, existing.day_of_week);
+  await rewriteDayOrder(supabase, existing.day_of_week, existing.location_id);
   revalidateHoursSurfaces();
   return {
     status: "saved",
@@ -307,6 +330,11 @@ export async function markDayClosed(
     return { status: "error", message: "יום השבוע אינו תקין" };
   }
 
+  const locationId = parseLocationId(formData);
+  if (!locationId) {
+    return { status: "error", message: "יש לבחור סניף" };
+  }
+
   const note = String(formData.get("note") ?? "");
   const noteError = validateHourNote(note);
   if (noteError) {
@@ -314,6 +342,7 @@ export async function markDayClosed(
   }
 
   const payload: TablesInsert<"opening_hours"> = {
+    location_id: locationId,
     day_of_week: day,
     is_closed: true,
     opens_at: null,
@@ -335,11 +364,15 @@ export async function markDayClosed(
   const { error: deleteError } = await supabase
     .from("opening_hours")
     .delete()
+    .eq("location_id", locationId)
     .eq("day_of_week", day)
     .neq("id", inserted.id);
 
   if (deleteError) {
-    return { status: "error", message: "סימון הסגירה נשמר, אך לא כל המשמרות הוסרו" };
+    return {
+      status: "error",
+      message: "סימון הסגירה נשמר, אך לא כל המשמרות הוסרו",
+    };
   }
 
   revalidateHoursSurfaces();
@@ -362,7 +395,7 @@ export async function moveHourInterval(
 
   const { data: existing, error: loadError } = await supabase
     .from("opening_hours")
-    .select("id, day_of_week, is_closed")
+    .select("id, day_of_week, is_closed, location_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -373,6 +406,7 @@ export async function moveHourInterval(
   const { data: rows, error: dayError } = await supabase
     .from("opening_hours")
     .select("id, is_closed")
+    .eq("location_id", existing.location_id)
     .eq("day_of_week", existing.day_of_week)
     .eq("is_closed", false)
     .order("sort_order", { ascending: true })

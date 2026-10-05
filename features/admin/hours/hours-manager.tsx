@@ -19,6 +19,7 @@ const idleState: HoursActionState = { status: "idle", message: null };
 
 type HoursManagerProps = {
   hours: AdminOpeningHour[];
+  locations: { id: number; name: string }[];
 };
 
 function groupByDay(hours: OpeningHour[]): Record<Weekday, OpeningHour[]> {
@@ -37,11 +38,25 @@ function groupByDay(hours: OpeningHour[]): Record<Weekday, OpeningHour[]> {
   return groups;
 }
 
-export function HoursManager({ hours }: HoursManagerProps) {
+export function HoursManager({ hours, locations }: HoursManagerProps) {
+  const [chosenId, setChosenId] = useState<number | null>(null);
+  // The chosen branch, or the first one while none is chosen (or it was removed).
+  const locationId =
+    locations.find((location) => location.id === chosenId)?.id ??
+    locations[0]?.id ??
+    null;
   const [feedback, setFeedback] = useState<HoursActionState>(idleState);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const busy = busyKey !== null;
-  const grouped = useMemo(() => groupByDay(hours), [hours]);
+  const grouped = useMemo(
+    () => groupByDay(hours.filter((row) => row.location_id === locationId)),
+    [hours, locationId],
+  );
+  // Hours are saved for the branch on screen.
+  const forLocation = (formData: FormData) => {
+    formData.set("location_id", String(locationId ?? ""));
+    return formData;
+  };
 
   async function run(
     key: string,
@@ -72,7 +87,31 @@ export function HoursManager({ hours }: HoursManagerProps) {
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-4">
+      {locations.length > 1 ? (
+        <div
+          role="group"
+          aria-label="סניף"
+          className="flex [scrollbar-width:none] gap-1.5 overflow-x-auto pb-0.5"
+        >
+          {locations.map((location) => (
+            <button
+              key={location.id}
+              type="button"
+              aria-pressed={location.id === locationId}
+              onClick={() => setChosenId(location.id)}
+              className={
+                location.id === locationId
+                  ? "rounded-pill border-caramel-soft bg-caramel-soft/30 text-caramel-deep focus-visible:ring-ring shrink-0 border px-4 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                  : "rounded-pill border-border text-muted hover:text-foreground focus-visible:ring-ring shrink-0 border px-4 py-2 text-sm transition focus-visible:ring-2 focus-visible:outline-none"
+              }
+            >
+              {location.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <div key={locationId} className="flex flex-col gap-4">
         {WEEKDAYS.map((day) => (
           <HoursDayCard
             key={day}
@@ -80,7 +119,9 @@ export function HoursManager({ hours }: HoursManagerProps) {
             rows={grouped[day] ?? []}
             disabled={busy}
             onCreate={(formData) =>
-              run(`create-${day}`, () => createHourInterval(formData))
+              run(`create-${day}`, () =>
+                createHourInterval(forLocation(formData)),
+              )
             }
             onUpdate={(formData) =>
               run(`save-${String(formData.get("id"))}`, () =>
@@ -99,7 +140,7 @@ export function HoursManager({ hours }: HoursManagerProps) {
               return run(`move-${id}`, () => moveHourInterval(formData));
             }}
             onMarkClosed={(formData) =>
-              run(`close-${day}`, () => markDayClosed(formData))
+              run(`close-${day}`, () => markDayClosed(forLocation(formData)))
             }
           />
         ))}

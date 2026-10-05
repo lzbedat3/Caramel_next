@@ -9,6 +9,7 @@ import {
   validateCategoryMetadata,
 } from "@/lib/admin/category";
 import { currentUserIsAdmin, getAuthClaims } from "@/lib/auth/session";
+import { readTranslations } from "@/lib/translations";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/types/database";
 
@@ -19,6 +20,8 @@ export type CategoryActionState = {
 
 const DELETE_BLOCKED_MESSAGE =
   "לא ניתן למחוק קטגוריה שעדיין מכילה מנות. יש להעביר או למחוק את המנות קודם.";
+
+const CATEGORY_TRANSLATED_FIELDS = ["name", "subtitle"] as const;
 
 async function requireAdminClient() {
   const claims = await getAuthClaims();
@@ -107,6 +110,7 @@ export async function createCategory(
   const payload: TablesInsert<"categories"> = {
     name: metadata.name.trim(),
     subtitle: emptyToNull(metadata.subtitle),
+    ...readTranslations(formData, CATEGORY_TRANSLATED_FIELDS),
     is_visible: formData.get("is_visible") === "on",
     storage_path: replacementPath,
     sort_order: (last?.sort_order ?? -1) + 1,
@@ -178,6 +182,7 @@ export async function updateCategory(
     .update({
       name: metadata.name.trim(),
       subtitle: emptyToNull(metadata.subtitle),
+      ...readTranslations(formData, CATEGORY_TRANSLATED_FIELDS),
       storage_path: nextPath,
     })
     .eq("id", id);

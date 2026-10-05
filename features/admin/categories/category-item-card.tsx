@@ -166,14 +166,18 @@ export function CategoryItemCard({
   }
 
   return (
-    <article className="rounded-card border border-border bg-surface px-4 py-4 sm:px-5">
-      <form onSubmit={onSubmit} aria-busy={busy} className="flex flex-col gap-4">
+    <article className="rounded-card border-border bg-surface border px-4 py-4 sm:px-5">
+      <form
+        onSubmit={onSubmit}
+        aria-busy={busy}
+        className="flex flex-col gap-4"
+      >
         <input type="hidden" name="id" value={category.id} />
         <input type="hidden" name="image_action" value={imageAction} />
 
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex shrink-0 flex-col items-center gap-2 sm:w-28">
-            <div className="relative flex size-20 items-center justify-center overflow-hidden rounded-full bg-surface-warm">
+            <div className="bg-surface-warm relative flex size-20 items-center justify-center overflow-hidden rounded-full">
               {displaySrc ? (
                 displaySrc.startsWith("blob:") ? (
                   // Local blob preview is not in the remote image loader.
@@ -193,12 +197,12 @@ export function CategoryItemCard({
                   />
                 )
               ) : (
-                <span className="font-display text-2xl text-caramel-deep">
+                <span className="font-display text-caramel-deep text-2xl">
                   {category.name.trim().charAt(0) || "•"}
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-soft">{itemLabel}</p>
+            <p className="text-muted-soft text-xs">{itemLabel}</p>
           </div>
 
           <div className="min-w-0 flex-1">
@@ -218,6 +222,7 @@ export function CategoryItemCard({
               idPrefix={formId}
               name={category.name}
               subtitle={category.subtitle ?? ""}
+              translations={category}
               disabled={busy}
               nameError={nameError ?? undefined}
             />
@@ -225,11 +230,11 @@ export function CategoryItemCard({
         </div>
 
         {fileError ? (
-          <p role="alert" className="text-sm text-caramel-deep">
+          <p role="alert" className="text-caramel-deep text-sm">
             {fileError}
           </p>
         ) : file ? (
-          <p className="text-xs text-muted-soft">
+          <p className="text-muted-soft text-xs">
             תמונה חדשה מוכנה: {file.name}. תישמר בלחיצה על שמירה.
           </p>
         ) : null}
@@ -250,7 +255,7 @@ export function CategoryItemCard({
           <label
             htmlFor={`${formId}-image`}
             className={cn(
-              "inline-flex cursor-pointer items-center justify-center rounded-pill border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-warm peer-focus-visible:ring-2 peer-focus-visible:ring-ring",
+              "rounded-pill border-border bg-surface text-foreground hover:bg-surface-warm peer-focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center border px-4 py-2 text-sm font-medium transition peer-focus-visible:ring-2",
               busy && "pointer-events-none opacity-60",
             )}
           >
@@ -305,7 +310,7 @@ export function CategoryItemCard({
             <div className="flex flex-wrap items-center gap-2">
               {category.itemCount > 0 ? (
                 <>
-                  <p className="max-w-sm text-sm text-caramel-deep">
+                  <p className="text-caramel-deep max-w-sm text-sm">
                     לא ניתן למחוק קטגוריה עם {itemLabel}. יש להעביר או למחוק את
                     המנות קודם.
                   </p>
@@ -321,7 +326,9 @@ export function CategoryItemCard({
                 </>
               ) : (
                 <>
-                  <p className="text-sm text-caramel-deep">למחוק את הקטגוריה?</p>
+                  <p className="text-caramel-deep text-sm">
+                    למחוק את הקטגוריה?
+                  </p>
                   <Button
                     type="button"
                     disabled={busy}

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { ButtonLink } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
 import { routes } from "@/config/routes";
 import { CompactImagesButton } from "@/features/admin/media/compact-images-button";
 import type {
@@ -21,6 +22,7 @@ import {
 } from "./actions";
 import { MenuCreateForm } from "./menu-create-form";
 import { MenuItemCard } from "./menu-item-card";
+import { MenuItemRow } from "./menu-item-row";
 import { menuInputClassName } from "./menu-item-fields";
 
 const idleState: MenuItemActionState = { status: "idle", message: null };
@@ -35,6 +37,9 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [query, setQuery] = useState("");
+  const [creating, setCreating] = useState(false);
+  // The dishes whose editor is open; kept here so a save does not fold them.
+  const [openIds, setOpenIds] = useState<ReadonlySet<number>>(new Set());
   const busy = busyKey !== null;
   const selectedCategoryId =
     categoryFilter === "all" ? undefined : Number(categoryFilter);
@@ -49,7 +54,10 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
       const matchesCategory =
         categoryFilter === "all" || String(item.category_id) === categoryFilter;
       const matchesQuery =
-        needle.length === 0 || item.name.toLowerCase().includes(needle);
+        needle.length === 0 ||
+        [item.name, item.name_ar, item.name_en].some((name) =>
+          name?.toLowerCase().includes(needle),
+        );
       return matchesCategory && matchesQuery;
     });
 
@@ -86,10 +94,10 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
 
   if (categories.length === 0) {
     return (
-      <div className="rounded-card border border-border bg-surface px-5 py-6">
-        <p className="text-sm leading-6 text-muted">
-          אי אפשר להוסיף מנות לפני שיש לפחות קטגוריה אחת. צרו קטגוריה ואז
-          חזרו למסך הזה.
+      <div className="rounded-card border-border bg-surface border px-5 py-6">
+        <p className="text-muted text-sm leading-6">
+          אי אפשר להוסיף מנות לפני שיש לפחות קטגוריה אחת. צרו קטגוריה ואז חזרו
+          למסך הזה.
         </p>
         <ButtonLink href={routes.adminCategories} className="mt-4">
           ניהול קטגוריות
@@ -112,55 +120,84 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
         ) : null}
       </div>
 
-      <CompactImagesButton />
-
-      <MenuCreateForm
-        categories={categories}
-        defaultCategoryId={defaultCategoryId}
-        disabled={busy}
-        onCreate={(formData) => run("create", () => createMenuItem(formData))}
-      />
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="menu-category-filter" className="text-sm font-medium">
-            סינון לפי קטגוריה
-          </label>
-          <select
-            id="menu-category-filter"
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            className={menuInputClassName}
-          >
-            <option value="all">כל הקטגוריות</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.isVisible ? category.name : `${category.name} (מוסתרת)`}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="menu-search" className="text-sm font-medium">
-            חיפוש לפי שם
-          </label>
+      <div className="rounded-card border-border bg-background/90 sticky top-[61px] z-10 -mx-1 flex flex-col gap-3 border px-3 py-3 backdrop-blur-md">
+        <div className="flex gap-2">
           <input
             id="menu-search"
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="לדוגמה: פסטה"
+            placeholder="חיפוש מנה בכל שפה"
+            aria-label="חיפוש מנה"
             className={menuInputClassName}
           />
+          <button
+            type="button"
+            aria-expanded={creating}
+            onClick={() => setCreating((value) => !value)}
+            className="rounded-control text-espresso focus-visible:ring-ring shrink-0 bg-[image:var(--gloss-caramel)] px-4 text-sm font-semibold whitespace-nowrap shadow-[var(--shadow-gloss)] transition hover:brightness-105 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            {creating ? "סגירה" : "מנה חדשה"}
+          </button>
+        </div>
+        <div
+          role="group"
+          aria-label="סינון לפי קטגוריה"
+          className="-mx-1 flex [scrollbar-width:none] gap-1.5 overflow-x-auto px-1 pb-0.5"
+        >
+          {[
+            { id: "all", name: "הכול", count: items.length, hidden: false },
+            ...categories.map((category) => ({
+              id: String(category.id),
+              name: category.name,
+              count: items.filter((item) => item.category_id === category.id)
+                .length,
+              hidden: !category.isVisible,
+            })),
+          ].map((chip) => (
+            <button
+              key={chip.id}
+              type="button"
+              aria-pressed={categoryFilter === chip.id}
+              onClick={() => setCategoryFilter(chip.id)}
+              className={cn(
+                "rounded-pill focus-visible:ring-ring flex shrink-0 items-center gap-1.5 border px-3 py-1.5 text-sm transition focus-visible:ring-2 focus-visible:outline-none",
+                categoryFilter === chip.id
+                  ? "border-caramel-soft bg-caramel-soft/30 text-caramel-deep"
+                  : "border-border text-muted hover:text-foreground",
+                chip.hidden && "opacity-60",
+              )}
+            >
+              {chip.name}
+              <span className="text-xs tabular-nums opacity-70">
+                {chip.count}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
+      {creating ? (
+        <MenuCreateForm
+          categories={categories}
+          defaultCategoryId={defaultCategoryId}
+          disabled={busy}
+          onCreate={async (formData) => {
+            const result = await run("create", () => createMenuItem(formData));
+            if (result.status === "saved") {
+              setCreating(false);
+            }
+            return result;
+          }}
+        />
+      ) : null}
+
       {items.length === 0 ? (
-        <p className="rounded-card border border-border bg-surface px-5 py-6 text-sm leading-6 text-muted">
+        <p className="rounded-card border-border bg-surface text-muted border px-5 py-6 text-sm leading-6">
           אין מנות עדיין. הוסיפו מנה כדי שתופיע בתפריט הציבורי.
         </p>
       ) : filteredGroups.length === 0 ? (
-        <p className="rounded-card border border-border bg-surface px-5 py-6 text-sm leading-6 text-muted">
+        <p className="rounded-card border-border bg-surface text-muted border px-5 py-6 text-sm leading-6">
           לא נמצאו מנות לפי הסינון הנוכחי.
         </p>
       ) : (
@@ -172,17 +209,17 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
 
             return (
               <section key={group.category.id} className="flex flex-col gap-3">
-                <h2 className="text-sm font-medium text-caramel-deep">
+                <h2 className="text-caramel-deep text-sm font-medium">
                   {group.category.name}
                   {!group.category.isVisible ? " · מוסתרת" : ""}
                 </h2>
                 {group.items.length === 0 ? (
-                  <p className="rounded-card border border-border bg-surface px-5 py-5 text-sm text-muted">
+                  <p className="rounded-card border-border bg-surface text-muted border px-5 py-5 text-sm">
                     אין מנות בקטגוריה הזו.
                   </p>
                 ) : (
                   <ul
-                    className="flex flex-col gap-4"
+                    className="flex flex-col gap-2"
                     aria-label={`מנות ב${group.category.name}`}
                   >
                     {group.items.map((item) => {
@@ -192,54 +229,79 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
 
                       return (
                         <li key={item.id}>
-                          <MenuItemCard
-                            key={`${item.id}-${item.updated_at}`}
+                          <MenuItemRow
                             item={item}
-                            categories={categories}
-                            isFirst={indexInCategory <= 0}
-                            isLast={
-                              indexInCategory === categoryItems.length - 1
-                            }
+                            open={openIds.has(item.id)}
                             disabled={busy}
-                            onUpdate={(formData) =>
-                              run(`save-${item.id}`, () =>
-                                updateMenuItem(formData),
-                              )
+                            onToggle={() =>
+                              setOpenIds((current) => {
+                                const next = new Set(current);
+                                if (!next.delete(item.id)) {
+                                  next.add(item.id);
+                                }
+                                return next;
+                              })
                             }
-                            onDelete={(formData) =>
-                              run(`delete-${item.id}`, () =>
-                                deleteMenuItem(formData),
-                              )
-                            }
-                            onMove={(direction) => {
-                              const formData = new FormData();
-                              formData.set("id", String(item.id));
-                              formData.set("direction", direction);
-                              return run(`move-${item.id}`, () =>
-                                moveMenuItem(formData),
-                              );
-                            }}
-                            onToggleVisibility={(visible) => {
-                              const formData = new FormData();
-                              formData.set("id", String(item.id));
-                              if (visible) {
-                                formData.set("is_visible", "on");
-                              }
-                              return run(`visible-${item.id}`, () =>
-                                setMenuItemVisibility(formData),
-                              );
-                            }}
                             onToggleAvailability={(available) => {
                               const formData = new FormData();
                               formData.set("id", String(item.id));
                               if (available) {
                                 formData.set("is_available", "on");
                               }
-                              return run(`available-${item.id}`, () =>
+                              void run(`available-${item.id}`, () =>
                                 setMenuItemAvailability(formData),
                               );
                             }}
-                          />
+                          >
+                            <MenuItemCard
+                              key={`${item.id}-${item.updated_at}`}
+                              item={item}
+                              categories={categories}
+                              isFirst={indexInCategory <= 0}
+                              isLast={
+                                indexInCategory === categoryItems.length - 1
+                              }
+                              disabled={busy}
+                              onUpdate={(formData) =>
+                                run(`save-${item.id}`, () =>
+                                  updateMenuItem(formData),
+                                )
+                              }
+                              onDelete={(formData) =>
+                                run(`delete-${item.id}`, () =>
+                                  deleteMenuItem(formData),
+                                )
+                              }
+                              onMove={(direction) => {
+                                const formData = new FormData();
+                                formData.set("id", String(item.id));
+                                formData.set("direction", direction);
+                                return run(`move-${item.id}`, () =>
+                                  moveMenuItem(formData),
+                                );
+                              }}
+                              onToggleVisibility={(visible) => {
+                                const formData = new FormData();
+                                formData.set("id", String(item.id));
+                                if (visible) {
+                                  formData.set("is_visible", "on");
+                                }
+                                return run(`visible-${item.id}`, () =>
+                                  setMenuItemVisibility(formData),
+                                );
+                              }}
+                              onToggleAvailability={(available) => {
+                                const formData = new FormData();
+                                formData.set("id", String(item.id));
+                                if (available) {
+                                  formData.set("is_available", "on");
+                                }
+                                return run(`available-${item.id}`, () =>
+                                  setMenuItemAvailability(formData),
+                                );
+                              }}
+                            />
+                          </MenuItemRow>
                         </li>
                       );
                     })}
@@ -250,6 +312,15 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
           })}
         </div>
       )}
+
+      <details className="rounded-card border-border bg-surface border">
+        <summary className="text-muted focus-visible:ring-ring cursor-pointer list-none px-5 py-3 text-sm focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+          כלים
+        </summary>
+        <div className="px-2 pb-2">
+          <CompactImagesButton />
+        </div>
+      </details>
     </div>
   );
 }

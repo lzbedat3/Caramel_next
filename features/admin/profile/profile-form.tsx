@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import {
   useActionState,
@@ -25,6 +26,8 @@ import { cn } from "@/lib/cn";
 import { isRemoteSvg } from "@/lib/storage-url";
 import type { Tables } from "@/types/database";
 
+import { routes } from "@/config/routes";
+import { TranslationFields } from "@/components/admin/translation-fields";
 import {
   saveRestaurantProfile,
   type SaveProfileState,
@@ -114,7 +117,10 @@ function ProfileEditor({
   );
 
   const fieldErrors = visibleErrors(state.fieldErrors, clientErrors, dismissed);
-  const dirty = snapshotOf(values, logoAction, fileName) !== baseline;
+  const [translationsEdited, setTranslationsEdited] = useState(false);
+  const dirty =
+    translationsEdited ||
+    snapshotOf(values, logoAction, fileName) !== baseline;
   const displayLogoSrc =
     previewUrl ?? (logoAction === "remove" ? null : logoSrc);
 
@@ -242,9 +248,6 @@ function ProfileEditor({
   const nameId = `${formId}-name`;
   const subtitleId = `${formId}-subtitle`;
   const aboutId = `${formId}-about`;
-  const addressId = `${formId}-address`;
-  const wazeId = `${formId}-waze`;
-  const phoneId = `${formId}-phone`;
   const emailId = `${formId}-email`;
   const logoId = `${formId}-logo`;
   const activeId = `${formId}-active`;
@@ -325,63 +328,23 @@ function ProfileEditor({
         className="rounded-card border border-border bg-surface px-5 py-5 sm:px-6"
       >
         <legend className="px-1 text-sm font-medium text-caramel-deep">
-          מיקום ויצירת קשר
+          יצירת קשר
         </legend>
         <div className="mt-4 flex flex-col gap-5">
-          <Field id={addressId} label="כתובת" error={fieldErrors.address}>
-            <input
-              id={addressId}
-              name="address"
-              value={values.address}
-              onChange={(event) => updateField("address", event.target.value)}
-              autoComplete="street-address"
-              aria-invalid={Boolean(fieldErrors.address)}
-              aria-describedby={
-                fieldErrors.address ? `${addressId}-error` : undefined
-              }
-              className={inputClassName}
-            />
-          </Field>
-          <Field
-            id={wazeId}
-            label="קישור Waze"
-            hint="חייב להתחיל ב-https:// או waze://"
-            error={fieldErrors.wazeUrl}
-          >
-            <input
-              id={wazeId}
-              name="waze_url"
-              type="text"
-              dir="ltr"
-              value={values.wazeUrl}
-              onChange={(event) => updateField("wazeUrl", event.target.value)}
-              inputMode="url"
-              autoComplete="url"
-              placeholder="https://waze.com/ul/..."
-              aria-invalid={Boolean(fieldErrors.wazeUrl)}
-              aria-describedby={
-                fieldErrors.wazeUrl ? `${wazeId}-error` : `${wazeId}-hint`
-              }
-              className={inputClassName}
-            />
-          </Field>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field id={phoneId} label="טלפון" error={fieldErrors.phone}>
-              <input
-                id={phoneId}
-                name="phone"
-                type="tel"
-                dir="ltr"
-                value={values.phone}
-                onChange={(event) => updateField("phone", event.target.value)}
-                autoComplete="tel"
-                aria-invalid={Boolean(fieldErrors.phone)}
-                aria-describedby={
-                  fieldErrors.phone ? `${phoneId}-error` : undefined
-                }
-                className={inputClassName}
-              />
-            </Field>
+          <p className="text-sm leading-6 text-muted">
+            כתובת, טלפון וקישור ניווט מנוהלים לכל סניף בנפרד, במסך{" "}
+            <Link
+              href={routes.adminLocations}
+              className="text-caramel-deep underline-offset-4 hover:underline"
+            >
+              סניפים
+            </Link>
+            .
+          </p>
+          {/* Kept as they are, so saving the profile never clears them. */}
+          <input type="hidden" name="address" value={values.address} />
+          <input type="hidden" name="waze_url" value={values.wazeUrl} />
+          <input type="hidden" name="phone" value={values.phone} />
             <Field id={emailId} label="אימייל" error={fieldErrors.email}>
               <input
                 id={emailId}
@@ -398,9 +361,19 @@ function ProfileEditor({
                 className={inputClassName}
               />
             </Field>
-          </div>
         </div>
       </fieldset>
+      <TranslationFields
+        idPrefix={formId}
+        fields={[
+          { name: "name", label: "שם המסעדה" },
+          { name: "subtitle", label: "תת-כותרת" },
+          { name: "about", label: "הסיפור", multiline: true },
+        ]}
+        values={profile ?? undefined}
+        disabled={pending}
+        onEdit={() => setTranslationsEdited(true)}
+      />
 
       <fieldset
         disabled={pending}

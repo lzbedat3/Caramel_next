@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { storageBuckets } from "@/config/storage";
 import { currentUserIsAdmin, getAuthClaims } from "@/lib/auth/session";
+import { readTranslations } from "@/lib/translations";
 import {
   emptyToNull,
   logoStoragePathForMime,
@@ -27,6 +28,8 @@ export type SaveProfileState = {
   message: string | null;
   fieldErrors: ProfileFieldErrors;
 };
+
+const PROFILE_TRANSLATED_FIELDS = ["name", "subtitle", "about"] as const;
 
 function readInput(formData: FormData): ProfileInput {
   return {
@@ -189,6 +192,7 @@ export async function saveRestaurantProfile(
     subtitle: emptyToNull(input.subtitle),
     about: emptyToNull(input.about),
     address: emptyToNull(input.address),
+    ...readTranslations(formData, PROFILE_TRANSLATED_FIELDS),
     waze_url: emptyToNull(input.wazeUrl),
     phone: emptyToNull(input.phone),
     email: emptyToNull(input.email),
