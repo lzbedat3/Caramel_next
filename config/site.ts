@@ -26,6 +26,21 @@ export function getSiteUrl(): string {
   }
 }
 
+// The address guests reach the site at. Unlike siteConfig.url it never points
+// at a development machine, so a QR code made locally is still printable.
+export function getPublicSiteUrl(): string {
+  const url = getSiteUrl();
+  try {
+    const { hostname } = new URL(url);
+    const local =
+      ["localhost", "127.0.0.1", "[::1]", "0.0.0.0"].includes(hostname) ||
+      /^(10|192\.168|172\.(1[6-9]|2\d|3[01]))\./.test(hostname);
+    return local ? FALLBACK_SITE_URL : url;
+  } catch {
+    return FALLBACK_SITE_URL;
+  }
+}
+
 export const siteConfig = {
   name: "Caramel",
   nameLocalized: "קרמל",
@@ -33,16 +48,9 @@ export const siteConfig = {
   dir: "rtl" as const,
   timeZone: "Asia/Jerusalem",
   ogLocale: "he_IL",
-  description: "גן עדן לציליאקים — התפריט של קרמל, שעות פתיחה ודרכי הגעה.",
+  description:
+    "קונדיטוריה בעבודת יד ללא גלוטן - התפריט של קרמל, שעות פתיחה ודרכי הגעה.",
   url: getSiteUrl(),
-  // Optional small line above the brand on the public menu; empty hides it.
-  eyebrow: "100% GLUTEN FREE",
-  credit: { name: "Darb Rest", url: "https://darb.co.il" },
-  // Shown under the rights line: who built it, and the small note to the owner.
-  dedication: {
-    by: "למא & נור",
-    to: "למחמוד, שמקבל כל אורח באהבה ומגיש כל מנה בתשוקה - תודה על כל מה שאתה עושה.",
-  },
 } as const;
 
 export type SiteDirection = typeof siteConfig.dir;
