@@ -70,7 +70,7 @@ export async function submitReview(
     return {
       status: "saved",
       // The guest's own copy; the stored row gets its real id on the next load.
-      review: { id: -Date.now(), ...input, createdAt },
+      review: { id: -Date.now(), ...input, createdAt, reply: null },
     };
   } catch {
     return { status: "error" };

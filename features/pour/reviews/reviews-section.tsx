@@ -110,7 +110,11 @@ export function ReviewsSection({
               value={average}
               label={format(strings.reviewStars, { count: average.toFixed(1) })}
             />
-            <small>{format(strings.reviewsCount, { count })}</small>
+            <small>
+              {count === 1
+                ? strings.reviewsOne
+                : format(strings.reviewsCount, { count })}
+            </small>
           </span>
         </div>
       )}
@@ -132,6 +136,12 @@ export function ReviewsSection({
                   .filter(Boolean)
                   .join(" · ")}
               </small>
+              {review.reply ? (
+                <div className="rv-reply">
+                  <b>{strings.reviewReply}</b>
+                  <p>{review.reply}</p>
+                </div>
+              ) : null}
             </li>
           ))}
         </ul>

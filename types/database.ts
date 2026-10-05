@@ -350,6 +350,8 @@ export type Database = {
           message: string | null
           name: string
           rating: number
+          replied_at: string | null
+          reply: string | null
         }
         Insert: {
           city?: string | null
@@ -361,6 +363,8 @@ export type Database = {
           message?: string | null
           name: string
           rating: number
+          replied_at?: string | null
+          reply?: string | null
         }
         Update: {
           city?: string | null
@@ -372,6 +376,8 @@ export type Database = {
           message?: string | null
           name?: string
           rating?: number
+          replied_at?: string | null
+          reply?: string | null
         }
         Relationships: [
           {

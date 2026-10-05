@@ -53,4 +53,6 @@ export const he = {
   reviewError: "לא הצלחנו לשמור את הביקורת. נסו שוב",
   reviewInvalid: "נא למלא שם ולבחור דירוג",
   reviewCancel: "ביטול",
+  reviewsOne: "ביקורת אחת",
+  reviewReply: "התגובה שלנו",
 } as const;

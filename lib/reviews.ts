@@ -2,6 +2,7 @@ export const REVIEW_NAME_MIN = 2;
 export const REVIEW_NAME_MAX = 60;
 export const REVIEW_CITY_MAX = 60;
 export const REVIEW_MESSAGE_MAX = 600;
+export const REVIEW_REPLY_MAX = 600;
 
 // A review as the public menu shows it.
 export type PublicReview = {
@@ -11,6 +12,8 @@ export type PublicReview = {
   message: string | null;
   city: string | null;
   createdAt: string;
+  /** The owner's public answer, if there is one. */
+  reply: string | null;
 };
 
 export type PublicReviews = {

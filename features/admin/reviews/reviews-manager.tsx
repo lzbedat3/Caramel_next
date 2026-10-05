@@ -4,20 +4,23 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { REVIEW_REPLY_MAX } from "@/lib/reviews";
 import type { AdminReview } from "@/services/admin-reviews";
 
 import {
   deleteReview,
+  saveReviewReply,
   setReviewVisibility,
   type ReviewActionState,
 } from "./actions";
 
 const idleState: ReviewActionState = { status: "idle", message: null };
 
-type Filter = "all" | "visible" | "hidden" | "low";
+type Filter = "all" | "unanswered" | "visible" | "hidden" | "low";
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "הכול" },
+  { id: "unanswered", label: "בלי תגובה" },
   { id: "visible", label: "מוצגות" },
   { id: "hidden", label: "מוסתרות" },
   { id: "low", label: "עד 2 כוכבים" },
@@ -47,6 +50,8 @@ export function ReviewsManager({ reviews }: { reviews: AdminReview[] }) {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [confirming, setConfirming] = useState<number | null>(null);
+  // The review whose reply box is open.
+  const [replying, setReplying] = useState<number | null>(null);
 
   const visible = reviews.filter((review) => review.is_visible);
   const average =
@@ -54,13 +59,15 @@ export function ReviewsManager({ reviews }: { reviews: AdminReview[] }) {
       ? visible.reduce((sum, review) => sum + review.rating, 0) / visible.length
       : null;
   const shown = reviews.filter((review) =>
-    filter === "visible"
-      ? review.is_visible
-      : filter === "hidden"
-        ? !review.is_visible
-        : filter === "low"
-          ? review.rating <= 2
-          : true,
+    filter === "unanswered"
+      ? !review.reply
+      : filter === "visible"
+        ? review.is_visible
+        : filter === "hidden"
+          ? !review.is_visible
+          : filter === "low"
+            ? review.rating <= 2
+            : true,
   );
 
   async function run(
@@ -74,8 +81,12 @@ export function ReviewsManager({ reviews }: { reviews: AdminReview[] }) {
     setBusyId(id);
     setFeedback(idleState);
     try {
-      setFeedback(await action(formData));
+      const result = await action(formData);
+      setFeedback(result);
       setConfirming(null);
+      if (result.status === "saved") {
+        setReplying(null);
+      }
     } finally {
       setBusyId(null);
     }
@@ -186,7 +197,93 @@ export function ReviewsManager({ reviews }: { reviews: AdminReview[] }) {
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
+                {replying === review.id ? (
+                  <form
+                    className="mt-3 flex flex-col gap-2"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      const reply = String(
+                        new FormData(event.currentTarget).get("reply") ?? "",
+                      );
+                      void run(review.id, saveReviewReply, (formData) =>
+                        formData.set("reply", reply),
+                      );
+                    }}
+                  >
+                    <label
+                      htmlFor={`reply-${review.id}`}
+                      className="text-muted text-xs"
+                    >
+                      התגובה תופיע באתר מתחת לביקורת
+                    </label>
+                    <textarea
+                      id={`reply-${review.id}`}
+                      name="reply"
+                      rows={3}
+                      maxLength={REVIEW_REPLY_MAX}
+                      defaultValue={review.reply ?? ""}
+                      autoFocus
+                      disabled={busy}
+                      className="rounded-control border-border bg-background text-foreground focus-visible:ring-ring w-full resize-y border px-3 py-2.5 text-sm leading-6 outline-none focus-visible:ring-2 disabled:opacity-60"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="submit"
+                        disabled={busy}
+                        className="px-4 py-2"
+                      >
+                        {busy ? "שומר…" : "פרסום התגובה"}
+                      </Button>
+                      {review.reply ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={busy}
+                          className="px-4 py-2"
+                          onClick={() =>
+                            void run(review.id, saveReviewReply, (formData) =>
+                              formData.set("reply", ""),
+                            )
+                          }
+                        >
+                          הסרת התגובה
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={busy}
+                        className="px-4 py-2"
+                        onClick={() => setReplying(null)}
+                      >
+                        ביטול
+                      </Button>
+                    </div>
+                  </form>
+                ) : review.reply ? (
+                  <div className="rounded-control border-caramel-deep bg-surface-warm/60 mt-3 border-s-2 px-3 py-2.5">
+                    <p className="text-caramel-deep text-xs font-medium">
+                      התגובה שלכם
+                    </p>
+                    <p className="text-foreground/90 mt-1 text-sm leading-6 break-words whitespace-pre-line">
+                      {review.reply}
+                    </p>
+                  </div>
+                ) : null}
                 <div className="mt-3 flex flex-wrap gap-2">
+                  {replying === review.id ? null : (
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      className="px-4 py-2"
+                      onClick={() => {
+                        setReplying(review.id);
+                        setConfirming(null);
+                      }}
+                    >
+                      {review.reply ? "עריכת התגובה" : "תגובה"}
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
