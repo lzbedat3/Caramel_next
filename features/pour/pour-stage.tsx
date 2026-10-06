@@ -261,7 +261,9 @@ export function PourStage({
         failed(event.target);
       }
     };
-    for (const img of root.querySelectorAll<HTMLImageElement>(".ph img")) {
+    // Every picture on the stage, not only the rings: the category bar's are in
+    // the first HTML too and can fail before these listeners exist.
+    for (const img of root.querySelectorAll<HTMLImageElement>("img")) {
       if (img.complete && img.naturalWidth > 0) {
         markLoaded(img);
       } else if (img.complete) {
