@@ -1,3 +1,4 @@
+import { WebAnalytics } from "@/components/analytics/web-analytics";
 import { RootDocument } from "@/components/layout/root-document";
 import { PwaExperience } from "@/components/pwa/pwa-experience";
 import { defaultLocale, isLocale, locales } from "@/config/locales";
@@ -34,6 +35,7 @@ export default async function FirstSegmentLayout({
       {locale === defaultLocale ? <RememberLanguage /> : null}
       {children}
       <PwaExperience locale={locale} />
+      <WebAnalytics />
     </RootDocument>
   );
 }
