@@ -17,6 +17,11 @@ export function getPublicStorageUrl(
   return `${base.replace(/\/$/, "")}/storage/v1/object/public/${bucket}/${cleanPath}`;
 }
 
+// Only for a file that is replaced in place under one fixed path (the logo).
+// Dish, category and main photos get a new path with every upload, so their
+// address already changes exactly when the picture does; a version taken from
+// the row would also change on every price edit or reorder and throw away
+// every cached copy for nothing.
 export function withCacheBust(
   url: string | null,
   version?: string | null,

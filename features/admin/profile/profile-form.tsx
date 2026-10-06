@@ -23,7 +23,6 @@ import {
   type ProfileInput,
 } from "@/lib/admin/profile";
 import { cn } from "@/lib/cn";
-import { isRemoteSvg } from "@/lib/storage-url";
 import type { Tables } from "@/types/database";
 
 import { routes } from "@/config/routes";
@@ -400,7 +399,9 @@ function ProfileEditor({
                   fill
                   sizes="112px"
                   className="object-contain p-2"
-                  unoptimized={isRemoteSvg(displayLogoSrc)}
+                  // The logo is replaced in place and carries a version in its
+                  // address; a single small file is not worth optimising.
+                  unoptimized
                 />
               )
             ) : (

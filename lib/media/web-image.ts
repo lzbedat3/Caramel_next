@@ -10,14 +10,6 @@ export const LOGO_IMAGE_MAX_EDGE = 800;
 /** Already-web-sized files can skip another pass. */
 export const COMPACT_SKIP_MAX_BYTES = 180 * 1024;
 
-export const MENU_CARD_IMAGE_SIZES =
-  "(min-width: 1024px) 192px, (min-width: 640px) 176px, (min-width: 381px) 160px, 42vw";
-
-export const MENU_MODAL_IMAGE_SIZES = "(min-width: 640px) 26rem, 100vw";
-
-/** Must match an entry in next.config images.deviceSizes / imageSizes. */
-export const MENU_IMAGE_MAX_REQUEST_WIDTH = 828;
-
 const SKIP_PREPARE_MIME = new Set(["image/gif", "image/svg+xml"]);
 
 export function shouldPrepareImage(mime: string): boolean {

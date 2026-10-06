@@ -59,6 +59,8 @@ export function PwaExperience({ locale }: { locale: Locale }) {
     };
     // Development never registers a worker, avoiding stale hot-reload assets.
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+      // A page the worker already controls was cached by it as it loaded.
+      const firstVisit = !navigator.serviceWorker.controller;
       void navigator.serviceWorker
         .register("/sw.js", { scope: "/", updateViaCache: "none" })
         .then((reg) => {
@@ -66,13 +68,20 @@ export function PwaExperience({ locale }: { locale: Locale }) {
           registration = reg;
           if (reg.waiting) setUpdate(reg.waiting);
           reg.addEventListener("updatefound", onUpdate);
-          // Hand the worker what this first visit already loaded, so the menu
-          // opens offline without needing a second visit.
+          // Hand the worker the page and build files this first visit already
+          // loaded, so the menu opens offline without needing a second visit.
+          // Photos are left out: the worker would have to download each one a
+          // second time. It keeps them as the guest scrolls instead.
+          if (!firstVisit) return;
           void navigator.serviceWorker.ready.then((ready) => {
             const urls = performance
               .getEntriesByType("resource")
               .map((entry) => entry.name)
-              .filter((name) => name.startsWith(window.location.origin));
+              .filter(
+                (name) =>
+                  name.startsWith(window.location.origin) &&
+                  !name.includes("/_next/image"),
+              );
             ready.active?.postMessage({
               type: "WARM",
               urls: [window.location.origin + "/", ...urls],

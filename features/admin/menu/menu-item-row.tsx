@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-
+import { StorageThumb } from "@/components/admin/storage-thumb";
 import { cn } from "@/lib/cn";
 import { formatPriceIls } from "@/lib/price";
 import type { AdminMenuItem } from "@/services/admin-menu";
@@ -69,11 +68,9 @@ export function MenuItemRow({
             )}
           >
             {item.imageSrc ? (
-              <Image
+              <StorageThumb
                 src={item.imageSrc}
                 alt=""
-                fill
-                sizes="48px"
                 className="object-cover"
               />
             ) : (

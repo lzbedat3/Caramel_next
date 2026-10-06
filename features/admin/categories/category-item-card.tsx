@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   useEffect,
   useId,
@@ -16,6 +15,7 @@ import {
   validateCategoryImageFile,
   validateCategoryMetadata,
 } from "@/lib/admin/category";
+import { StorageThumb } from "@/components/admin/storage-thumb";
 import { cn } from "@/lib/cn";
 import type { AdminCategory } from "@/services/admin-categories";
 
@@ -188,11 +188,9 @@ export function CategoryItemCard({
                     className="size-full object-cover"
                   />
                 ) : (
-                  <Image
+                  <StorageThumb
                     src={displaySrc}
                     alt={category.name}
-                    fill
-                    sizes="80px"
                     className="object-cover"
                   />
                 )

@@ -4,7 +4,7 @@ import { cache } from "react";
 
 import { isSupabaseConfigured } from "@/config/env";
 import { storageBuckets } from "@/config/storage";
-import { getPublicStorageUrl, withCacheBust } from "@/lib/storage-url";
+import { getPublicStorageUrl } from "@/lib/storage-url";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database";
 
@@ -40,9 +40,9 @@ export const getAdminCategories = cache(async (): Promise<AdminCategory[]> => {
 
     return categoriesResult.data.map((row) => ({
       ...row,
-      imageSrc: withCacheBust(
-        getPublicStorageUrl(storageBuckets.categories, row.storage_path),
-        row.updated_at,
+      imageSrc: getPublicStorageUrl(
+        storageBuckets.categories,
+        row.storage_path,
       ),
       itemCount: counts.get(row.id) ?? 0,
     }));

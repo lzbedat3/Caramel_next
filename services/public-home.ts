@@ -8,7 +8,7 @@ import { storageBuckets } from "@/config/storage";
 import { getHeroSlideDurationMs } from "@/lib/opening-hours";
 import type { PublicCategory, PublicMenuItem } from "@/lib/public-content";
 import type { PublicSocialLink } from "@/lib/social";
-import { getPublicStorageUrl, withCacheBust } from "@/lib/storage-url";
+import { getPublicStorageUrl } from "@/lib/storage-url";
 import { emptyReviews, type PublicReviews } from "@/lib/reviews";
 import { createPublicClient } from "@/lib/supabase/public";
 import { localizedText, localizeProfile } from "@/lib/translations";
@@ -97,11 +97,11 @@ function toHeroSlide(row: Tables<"hero_media">): HeroSlide | null {
   return {
     id: row.id,
     type: row.type,
-    src: withCacheBust(src, row.updated_at) ?? src,
+    src,
     alt: row.alt_text,
-    posterSrc: withCacheBust(
-      getPublicStorageUrl(storageBuckets.hero, row.poster_storage_path),
-      row.updated_at,
+    posterSrc: getPublicStorageUrl(
+      storageBuckets.hero,
+      row.poster_storage_path,
     ),
     autoplay: row.autoplay,
     loop: row.loop,
@@ -120,10 +120,7 @@ function toPublicMenuItem(
     name: localizedText(row, "name", locale) ?? row.name,
     shortDescription: localizedText(row, "short_description", locale),
     price: Number(row.price),
-    imageSrc: withCacheBust(
-      getPublicStorageUrl(storageBuckets.menuItems, row.storage_path),
-      row.updated_at,
-    ),
+    imageSrc: getPublicStorageUrl(storageBuckets.menuItems, row.storage_path),
     isAvailable: row.is_available,
   };
 }
@@ -136,10 +133,7 @@ function toPublicCategory(
     id: row.id,
     name: localizedText(row, "name", locale) ?? row.name,
     subtitle: localizedText(row, "subtitle", locale),
-    imageSrc: withCacheBust(
-      getPublicStorageUrl(storageBuckets.categories, row.storage_path),
-      row.updated_at,
-    ),
+    imageSrc: getPublicStorageUrl(storageBuckets.categories, row.storage_path),
   };
 }
 

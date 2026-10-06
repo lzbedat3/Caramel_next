@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   useEffect,
   useId,
@@ -17,6 +16,7 @@ import {
   validateMenuItemImageFile,
   validateMenuItemMetadata,
 } from "@/lib/admin/menu-item";
+import { StorageThumb } from "@/components/admin/storage-thumb";
 import { cn } from "@/lib/cn";
 import { formatPriceIls } from "@/lib/price";
 import type {
@@ -197,11 +197,9 @@ export function MenuItemCard({
                     className="size-full object-cover"
                   />
                 ) : (
-                  <Image
+                  <StorageThumb
                     src={displaySrc}
                     alt={item.name}
-                    fill
-                    sizes="80px"
                     className="object-cover"
                   />
                 )
