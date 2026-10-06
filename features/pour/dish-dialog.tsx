@@ -199,7 +199,7 @@ export function DishDialog({
             <img key={`lo-${dish?.id}`} className="lo" alt="" src={lowSrc} />
           ) : null}
           {dish?.detail ? (
-            // The optimised sources are prepared on the server with next/image;
+            // The optimised address is prepared on the server with next/image;
             // the image fades in over the ring photo once it has loaded.
             // eslint-disable-next-line @next/next/no-img-element
             <img

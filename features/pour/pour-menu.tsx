@@ -1,4 +1,4 @@
-import Image, { getImageProps } from "next/image";
+import { getImageProps } from "next/image";
 
 import { brandAssets } from "@/config/brand-assets";
 import { localeMeta, menuPath, type Locale } from "@/config/locales";
@@ -14,14 +14,16 @@ import {
   type StageImage,
 } from "@/features/pour/pour-stage";
 import { format, getDictionary } from "@/lib/i18n";
+import { IMAGE_WIDTHS, optimizedSource } from "@/lib/media/image-variants";
 import { formatPriceParts } from "@/lib/price";
 import { isRemoteSvg } from "@/lib/storage-url";
 import type { PublicHomeContent } from "@/services/public-home";
 
-const RING_SIZES = "170px";
-const DETAIL_SIZES = "(max-width: 460px) 100vw, 400px";
-const GALLERY_SIZES = "(min-width: 1100px) 24vw, 1px";
-const PRIORITY_DISHES = 3;
+// The frame is at most 340px wide and only exists on wide screens.
+const GALLERY_SIZES = "(min-width: 1100px) 340px, 1px";
+// The rings a phone shows when the menu opens. Every other photo waits until
+// the guest scrolls near it (see the stage).
+const EAGER_DISHES = 3;
 const HEBREW_OR_ARABIC = /[֐-׿؀-ۿ]/;
 
 function scriptClass(text: string): "heb" | "lat" {
@@ -37,18 +39,13 @@ function brandParts(name: string): string[] {
     .slice(0, 2);
 }
 
-function imageSources(
-  src: string,
-  width: number,
-  height: number,
-  sizes?: string,
-): StageImage {
+function gallerySources(src: string): StageImage {
   const { props } = getImageProps({
     src,
     alt: "",
-    width,
-    height,
-    sizes,
+    width: 640,
+    height: 427,
+    sizes: GALLERY_SIZES,
     unoptimized: isRemoteSvg(src),
   });
   return { src: props.src, srcSet: props.srcSet, sizes: props.sizes };
@@ -98,9 +95,12 @@ export function PourMenu({
       price: formatPriceParts(item.price),
       isAvailable: item.isAvailable,
       detail: item.imageSrc
-        ? imageSources(item.imageSrc, 800, 600, DETAIL_SIZES)
+        ? { src: optimizedSource(item.imageSrc, IMAGE_WIDTHS.detail) }
         : null,
-      thumb: item.imageSrc ? imageSources(item.imageSrc, 128, 96) : null,
+      // The table shows the ring's own photo, which the guest already has.
+      thumb: item.imageSrc
+        ? { src: optimizedSource(item.imageSrc, IMAGE_WIDTHS.ring) }
+        : null,
     })),
   );
 
@@ -113,7 +113,7 @@ export function PourMenu({
         id: category.id,
         name: category.name,
         image: category.imageSrc
-          ? imageSources(category.imageSrc, 104, 104)
+          ? { src: optimizedSource(category.imageSrc, IMAGE_WIDTHS.small) }
           : null,
       }))}
       strings={strings}
@@ -137,7 +137,7 @@ export function PourMenu({
             id: slide.id,
             alt: slide.alt,
             durationMs: slide.durationMs,
-            ...imageSources(slide.src, 640, 427, GALLERY_SIZES),
+            ...gallerySources(slide.src),
           }))}
       />
       <main id="stage" data-menu={dishes.length > 0 ? "complete" : undefined}>
@@ -203,7 +203,7 @@ export function PourMenu({
               {items.map((item, index) => {
                 const side = sides[index % 2] ?? "R";
                 const price = formatPriceParts(item.price);
-                const priority = position++ < PRIORITY_DISHES;
+                const eager = position++ < EAGER_DISHES;
                 return (
                   <article
                     key={item.id}
@@ -216,18 +216,19 @@ export function PourMenu({
                   >
                     <button type="button" className="ph" aria-label={item.name}>
                       {item.imageSrc ? (
-                        <Image
-                          src={item.imageSrc}
+                        // One optimised address per dish, the same on every screen.
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={optimizedSource(
+                            item.imageSrc,
+                            IMAGE_WIDTHS.ring,
+                          )}
                           alt=""
                           width={340}
                           height={255}
-                          sizes={RING_SIZES}
-                          quality={70}
-                          priority={priority}
-                          // Every ring photo loads straight away (about 15 KB each as WebP),
-                          // so nothing appears late while the guest scrolls.
-                          loading={priority ? undefined : "eager"}
-                          unoptimized={isRemoteSvg(item.imageSrc)}
+                          decoding="async"
+                          loading={eager ? "eager" : "lazy"}
+                          fetchPriority={eager ? "high" : undefined}
                         />
                       ) : null}
                       <span className="nm" aria-hidden="true">

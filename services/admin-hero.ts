@@ -4,7 +4,7 @@ import { cache } from "react";
 
 import { isSupabaseConfigured } from "@/config/env";
 import { storageBuckets } from "@/config/storage";
-import { getPublicStorageUrl, withCacheBust } from "@/lib/storage-url";
+import { getPublicStorageUrl } from "@/lib/storage-url";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database";
 
@@ -32,13 +32,10 @@ export const getAdminHeroMedia = cache(async (): Promise<AdminHeroItem[]> => {
 
     return data.map((row) => ({
       ...row,
-      src: withCacheBust(
-        getPublicStorageUrl(storageBuckets.hero, row.storage_path),
-        row.updated_at,
-      ),
-      posterSrc: withCacheBust(
-        getPublicStorageUrl(storageBuckets.hero, row.poster_storage_path),
-        row.updated_at,
+      src: getPublicStorageUrl(storageBuckets.hero, row.storage_path),
+      posterSrc: getPublicStorageUrl(
+        storageBuckets.hero,
+        row.poster_storage_path,
       ),
     }));
   } catch {

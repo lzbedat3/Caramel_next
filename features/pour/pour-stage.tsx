@@ -25,6 +25,7 @@ import {
 } from "@/features/pour/table/table";
 import { cn } from "@/lib/cn";
 import type { Dictionary } from "@/lib/i18n";
+import { showOriginal } from "@/lib/media/original-image";
 
 export type StageImage = { src: string; srcSet?: string; sizes?: string };
 
@@ -49,6 +50,19 @@ type PourStageProps = {
   locationSlug: string | null;
   children: React.ReactNode;
 };
+
+// A finger resting on a ring this long is a tap, not the start of a scroll.
+const TAP_HOLD_MS = 80;
+// Ring photos start loading when their ring is this close to the screen.
+const LOOKAHEAD = "200% 0px";
+// How many photos of a category are fetched ahead when the guest jumps to it.
+const JUMP_AHEAD = 4;
+
+function loadNow(img: HTMLImageElement | null | undefined) {
+  if (img && img.loading === "lazy") {
+    img.loading = "eager";
+  }
+}
 
 function collectElements(root: HTMLElement): PourElements | null {
   const one = <T extends Element>(selector: string) =>
@@ -187,6 +201,38 @@ export function PourStage({
     }
   }, [engineReady]);
 
+  // Ring photos load a little ahead of the scroll. The first few come with the
+  // page; each of the others starts once its ring is within two screens of the
+  // viewport, in either direction. It begins only after the engine (or the
+  // plain-list fallback) has laid the dishes out: before that they sit in a
+  // compact list and far too many would count as near. The browser's own lazy
+  // loading remains the safety net.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !engineReady || !("IntersectionObserver" in window)) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            observer.unobserve(entry.target);
+            loadNow(entry.target.querySelector("img"));
+          }
+        }
+      },
+      { rootMargin: LOOKAHEAD },
+    );
+    for (const img of root.querySelectorAll<HTMLImageElement>(
+      '.ph img[loading="lazy"]',
+    )) {
+      if (img.parentElement) {
+        observer.observe(img.parentElement);
+      }
+    }
+    return () => observer.disconnect();
+  }, [engineReady]);
+
   // Photos fade in once loaded; a broken photo becomes a lettered ring.
   useEffect(() => {
     const root = rootRef.current;
@@ -204,17 +250,23 @@ export function PourStage({
         markLoaded(event.target);
       }
     };
+    // An optimised photo that fails is tried once more as the stored original.
+    const failed = (img: HTMLImageElement) => {
+      if (!showOriginal(img)) {
+        img.closest(".dish")?.setAttribute("data-noimg", "");
+      }
+    };
     const onError = (event: Event) => {
       if (event.target instanceof HTMLImageElement) {
-        event.target.closest(".dish")?.setAttribute("data-noimg", "");
+        failed(event.target);
       }
     };
     for (const img of root.querySelectorAll<HTMLImageElement>(".ph img")) {
       if (img.complete && img.naturalWidth > 0) {
         markLoaded(img);
       } else if (img.complete) {
-        // Failed before hydration: show the lettered ring instead of an empty one.
-        img.closest(".dish")?.setAttribute("data-noimg", "");
+        // Failed before hydration.
+        failed(img);
       }
     }
     const onToggle = () => handleRef.current?.relayout();
@@ -258,45 +310,16 @@ export function PourStage({
     [dishes],
   );
 
-  // Large photos are fetched ahead: on touch, and one at a time for dishes the
-  // caramel has reached, so the dialog opens with its photo already cached.
+  // The large photo is fetched only when the guest reaches for a dish: a press
+  // on its ring gives it a head start on the dialog. Scrolling past a dish
+  // never downloads it.
   const prefetched = useRef(new Set<number>());
-  const queue = useRef<StageDish[]>([]);
-  const busy = useRef(false);
-  const prefetch = useCallback((dish: StageDish | undefined, now = false) => {
+  const prefetch = useCallback((dish: StageDish | undefined) => {
     if (!dish?.detail || prefetched.current.has(dish.id)) {
       return;
     }
-    const start = (entry: StageDish) => {
-      prefetched.current.add(entry.id);
-      const img = new Image();
-      if (entry.detail?.sizes) img.sizes = entry.detail.sizes;
-      if (entry.detail?.srcSet) img.srcset = entry.detail.srcSet;
-      img.src = entry.detail?.src ?? "";
-      return img;
-    };
-    if (now) {
-      start(dish);
-      return;
-    }
-    queue.current.push(dish);
-    const next = () => {
-      const entry = queue.current.shift();
-      if (!entry || prefetched.current.has(entry.id)) {
-        busy.current = false;
-        if (entry) next();
-        return;
-      }
-      busy.current = true;
-      const img = start(entry);
-      img.onload = img.onerror = () => {
-        busy.current = false;
-        next();
-      };
-    };
-    if (!busy.current) {
-      next();
-    }
+    prefetched.current.add(dish.id);
+    new Image().src = dish.detail.src;
   }, []);
 
   useEffect(() => {
@@ -304,33 +327,31 @@ export function PourStage({
     if (!root) {
       return;
     }
-    const observer = new MutationObserver((records) => {
-      for (const record of records) {
-        const el = record.target as HTMLElement;
-        if (el.hasAttribute("data-lit")) {
-          prefetch(dishById(Number(el.dataset.id)));
-        }
-      }
-    });
-    for (const dish of root.querySelectorAll<HTMLElement>(".dish")) {
-      observer.observe(dish, {
-        attributes: true,
-        attributeFilter: ["data-lit"],
-      });
-    }
+    let hold = 0;
+    const release = () => window.clearTimeout(hold);
     const onPointerDown = (event: PointerEvent) => {
       const ph = (event.target as Element).closest<HTMLElement>(".ph");
-      if (ph) {
-        prefetch(
-          dishById(Number(ph.closest<HTMLElement>(".dish")?.dataset.id)),
-          true,
-        );
+      if (!ph) {
+        return;
       }
+      const dish = dishById(
+        Number(ph.closest<HTMLElement>(".dish")?.dataset.id),
+      );
+      release();
+      if (event.pointerType === "mouse") {
+        prefetch(dish);
+        return;
+      }
+      // A finger landing on a ring is usually the start of a scroll, and the
+      // browser cancels the pointer as soon as it is one.
+      hold = window.setTimeout(() => prefetch(dish), TAP_HOLD_MS);
     };
     root.addEventListener("pointerdown", onPointerDown, { passive: true });
+    root.addEventListener("pointercancel", release, { passive: true });
     return () => {
-      observer.disconnect();
+      release();
       root.removeEventListener("pointerdown", onPointerDown);
+      root.removeEventListener("pointercancel", release);
     };
   }, [dishById, prefetch]);
   const { count, total } = totals(table, (id) => dishById(id)?.value ?? 0);
@@ -390,6 +411,13 @@ export function PourStage({
     );
     if (top === undefined) {
       return;
+    }
+    // The first photos at the destination start loading before the scroll arrives.
+    const ahead = rootRef.current?.querySelectorAll<HTMLImageElement>(
+      `.dish[data-category="${index}"] .ph img[loading="lazy"]`,
+    );
+    for (const img of [...(ahead ?? [])].slice(0, JUMP_AHEAD)) {
+      loadNow(img);
     }
     window.scrollTo({
       top,

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   useEffect,
   useId,
@@ -20,6 +19,7 @@ import {
   validateHeroMetadata,
   type HeroMediaType,
 } from "@/lib/admin/hero";
+import { StorageThumb } from "@/components/admin/storage-thumb";
 import { cn } from "@/lib/cn";
 import type { AdminHeroItem } from "@/services/admin-hero";
 
@@ -193,11 +193,9 @@ export function HeroItemCard({
                   className="size-full object-cover"
                 />
               ) : (
-                <Image
+                <StorageThumb
                   src={previewSrc}
                   alt={item.alt_text ?? ""}
-                  fill
-                  sizes="160px"
                   className="object-cover"
                 />
               )

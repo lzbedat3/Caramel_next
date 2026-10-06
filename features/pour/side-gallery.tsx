@@ -6,6 +6,7 @@ export type GallerySlide = {
   id: number;
   src: string;
   srcSet?: string;
+  sizes?: string;
   alt: string | null;
   durationMs: number;
 };
@@ -44,7 +45,7 @@ export function SideGallery({ slides }: { slides: GallerySlide[] }) {
           key={slide.id}
           src={slide.src}
           srcSet={slide.srcSet}
-          sizes="(min-width: 1100px) 24vw, 1px"
+          sizes={slide.sizes}
           alt=""
           loading="lazy"
           decoding="async"

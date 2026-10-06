@@ -1548,6 +1548,23 @@ html:has(.pour)::-webkit-scrollbar {
   overflow-wrap: anywhere;
 }
 
+/* Until the engine lays the dishes out they sit in a hidden, compact list, and
+   the browser would take a dozen of them for "near the screen" and fetch their
+   photos. Photos that are not needed at once stay out of the layout until the
+   dishes are in place; the stage then loads them just ahead of the scroll.
+   Without script, or if the engine never arrives, the plain list shows them. */
+@media (scripting: enabled) {
+  .pour #stage:not([data-pour], [data-fallback]) .ph img[loading="lazy"] {
+    display: none;
+    animation: pour-late-photo 0s 8s forwards;
+  }
+}
+@keyframes pour-late-photo {
+  to {
+    display: block;
+  }
+}
+
 /* Dialog photo: the ring's photo shows at once, the large one fades in over it. */
 .pour #xf img.hi {
   opacity: 0;

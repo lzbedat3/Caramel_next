@@ -4,7 +4,7 @@ import { cache } from "react";
 
 import { isSupabaseConfigured } from "@/config/env";
 import { storageBuckets } from "@/config/storage";
-import { getPublicStorageUrl, withCacheBust } from "@/lib/storage-url";
+import { getPublicStorageUrl } from "@/lib/storage-url";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database";
 
@@ -66,16 +66,18 @@ export const getAdminMenu = cache(async (): Promise<AdminMenuPayload> => {
       isVisible: row.is_visible,
       sortOrder: row.sort_order,
     }));
-    const names = new Map(categories.map((category) => [category.id, category.name]));
+    const names = new Map(
+      categories.map((category) => [category.id, category.name]),
+    );
 
     return {
       categories,
       items: (itemsResult.data ?? []).map((row) => ({
         ...row,
         price: toPrice(row.price),
-        imageSrc: withCacheBust(
-          getPublicStorageUrl(storageBuckets.menuItems, row.storage_path),
-          row.updated_at,
+        imageSrc: getPublicStorageUrl(
+          storageBuckets.menuItems,
+          row.storage_path,
         ),
         categoryName: names.get(row.category_id) ?? "קטגוריה",
       })),

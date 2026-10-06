@@ -23,39 +23,42 @@ function localDevOrigins(): string[] {
   return [...origins];
 }
 
-function supabaseImagePatterns(): NonNullable<
-  NextConfig["images"]
->["remotePatterns"] {
-  const patterns: NonNullable<NextConfig["images"]>["remotePatterns"] = [
-    {
-      protocol: "https",
-      hostname: "*.supabase.co",
-      pathname: "/storage/v1/object/public/**",
-    },
+type RemotePatterns = NonNullable<
+  NonNullable<NextConfig["images"]>["remotePatterns"]
+>;
+
+// Only this project's own storage may be optimised, and only at its plain
+// address: every extra host or query string is one more image a stranger could
+// have transformed on our account.
+function supabaseImagePatterns(): RemotePatterns {
+  const pathname = "/storage/v1/object/public/**";
+  const anyProject: RemotePatterns = [
+    { protocol: "https", hostname: "*.supabase.co", pathname, search: "" },
   ];
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) {
-    return patterns;
+    return anyProject;
   }
 
   try {
     const parsed = new URL(supabaseUrl);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return patterns;
+      return anyProject;
     }
 
-    patterns.push({
-      protocol: parsed.protocol === "http:" ? "http" : "https",
-      hostname: parsed.hostname,
-      ...(parsed.port ? { port: parsed.port } : {}),
-      pathname: "/storage/v1/object/public/**",
-    });
+    return [
+      {
+        protocol: parsed.protocol === "http:" ? "http" : "https",
+        hostname: parsed.hostname,
+        ...(parsed.port ? { port: parsed.port } : {}),
+        pathname,
+        search: "",
+      },
+    ];
   } catch {
-    return patterns;
+    return anyProject;
   }
-
-  return patterns;
 }
 
 const localOrigins = localDevOrigins();
@@ -87,9 +90,11 @@ const nextConfig: NextConfig = {
     remotePatterns: supabaseImagePatterns(),
     formats: ["image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 31,
-    qualities: [70, 75],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [48, 64, 96, 128, 160, 256, 384],
+    // One quality and three widths: the sizes in lib/media/image-variants.ts.
+    // Each stored photo can only ever be transformed into these.
+    qualities: [75],
+    deviceSizes: [768],
+    imageSizes: [128, 448],
   },
   experimental: {
     // One root layout per language group, so unmatched addresses need this.

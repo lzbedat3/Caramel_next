@@ -1,7 +1,8 @@
 /* Offline support for the public menu.
    - The menu page: network first, falling back to the last copy seen.
    - Build assets, fonts and brand files: served from cache, refreshed in the background.
-   - Optimised dish photos: cache first, capped.
+   - Optimised dish photos: kept as the guest sees them, cache first, capped.
+     They are never fetched ahead of the page.
    - Admin, sign-in, auth and anything that is not a GET are never touched. */
 const VERSION = "caramel-v4";
 const PAGES = `${VERSION}-pages`;
@@ -127,7 +128,10 @@ self.addEventListener("message", (event) => {
     void self.skipWaiting();
   }
   // The first visit loads before this worker controls the page, so the page
-  // hands over what it already fetched and the menu works offline straight away.
+  // hands over the page and build files it already fetched and the menu works
+  // offline straight away. Photos are not warmed: that would download every
+  // one of them twice, and with a different Accept header than the page's own
+  // request, which the image optimiser can count as a separate image.
   if (event.data?.type === "WARM" && Array.isArray(event.data.urls)) {
     event.waitUntil(
       Promise.all(
@@ -137,8 +141,6 @@ self.addEventListener("message", (event) => {
           try {
             if (isMenuPath(url.pathname)) {
               await menuPage(new Request(url.pathname));
-            } else if (isImage(url.pathname)) {
-              await cacheFirstImage(new Request(url.href));
             } else if (isAsset(url.pathname)) {
               const cache = await caches.open(ASSETS);
               if (!(await cache.match(url.href))) await cache.add(url.href);
