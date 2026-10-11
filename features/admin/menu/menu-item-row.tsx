@@ -3,6 +3,7 @@
 import { StorageThumb } from "@/components/admin/storage-thumb";
 import { cn } from "@/lib/cn";
 import { formatPriceIls } from "@/lib/price";
+import { missingTranslation } from "@/lib/translations";
 import type { AdminMenuItem } from "@/services/admin-menu";
 
 type MenuItemRowProps = {
@@ -45,7 +46,7 @@ export function MenuItemRow({
   onToggleAvailability,
   children,
 }: MenuItemRowProps) {
-  const untranslated = !item.name_ar?.trim() || !item.name_en?.trim();
+  const untranslated = missingTranslation(item, "name");
 
   return (
     <div

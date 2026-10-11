@@ -1,4 +1,4 @@
-export const locales = ["he", "ar", "en"] as const;
+export const locales = ["he", "ar", "en", "ru"] as const;
 
 export type Locale = (typeof locales)[number];
 
@@ -12,6 +12,7 @@ export const localeMeta: Record<
   he: { dir: "rtl", ogLocale: "he_IL", label: "עברית", short: "עב" },
   ar: { dir: "rtl", ogLocale: "ar_IL", label: "العربية", short: "ع" },
   en: { dir: "ltr", ogLocale: "en_US", label: "English", short: "EN" },
+  ru: { dir: "ltr", ogLocale: "ru_RU", label: "Русский", short: "RU" },
 };
 
 export function isLocale(value: string | null | undefined): value is Locale {

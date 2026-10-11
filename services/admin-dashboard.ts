@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "@/config/env";
 import { siteConfig } from "@/config/site";
 import { isRestaurantOpen } from "@/lib/opening-hours";
 import { createClient } from "@/lib/supabase/server";
+import { missingTranslation } from "@/lib/translations";
 
 export type AdminShellContext = {
   restaurantName: string | null;
@@ -86,7 +87,7 @@ export const getAdminDashboardSnapshot = cache(
           supabase
             .from("menu_items")
             .select(
-              "id, is_visible, is_available, storage_path, name_ar, name_en",
+              "id, is_visible, is_available, storage_path, name_ar, name_en, name_ru",
             ),
           supabase.from("opening_hours").select("*"),
         ]);
@@ -114,8 +115,8 @@ export const getAdminDashboardSnapshot = cache(
         // Only what guests can see is worth chasing.
         itemsWithoutImage: visibleItems.filter((item) => !item.storage_path)
           .length,
-        itemsMissingTranslation: visibleItems.filter(
-          (item) => !item.name_ar?.trim() || !item.name_en?.trim(),
+        itemsMissingTranslation: visibleItems.filter((item) =>
+          missingTranslation(item, "name"),
         ).length,
         openingHoursRowCount: hours.length,
       };

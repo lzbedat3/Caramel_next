@@ -16,11 +16,12 @@ html:has(.pour)::-webkit-scrollbar {
   --amber: #e9a43a;
   --gold: #f6c062;
   --burnt: #2a1104;
-  /* Latin only: the literal face has a Latin unicode-range, so Hebrew and Arabic
-     fall through to Heebo and Cairo instead of a system fallback. */
+  /* Latin and Cyrillic only: the literal face has those unicode-ranges, so
+     Hebrew and Arabic fall through to Heebo and Cairo instead of a system
+     fallback. */
   --font-ubuntu: Ubuntu;
-  /* The face for running text. English pages put Ubuntu first; Hebrew and
-     Arabic letters still fall through to Heebo and Cairo. */
+  /* The face for running text. English and Russian pages put Ubuntu first;
+     Hebrew and Arabic letters still fall through to Heebo and Cairo. */
   --font-text: var(--font-heebo);
   position: relative;
   flex: 1;
@@ -171,10 +172,15 @@ html:has(.pour)::-webkit-scrollbar {
     letter-spacing: 0;
     font-size: 11.5px;
   }
-  .eyebrow:lang(en) {
+  .eyebrow:lang(en),
+  .eyebrow:lang(ru) {
     font-size: 9px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
+  }
+  /* The Russian line is the longest; a little less tracking keeps it short. */
+  .eyebrow:lang(ru) {
+    letter-spacing: 0.12em;
   }
   .brand {
     position: absolute;
@@ -1705,7 +1711,8 @@ html:has(.pour)::-webkit-scrollbar {
   color: var(--muted);
 }
 
-.pour:lang(en) {
+.pour:lang(en),
+.pour:lang(ru) {
   --font-text: var(--font-ubuntu), var(--font-heebo);
 }
 /* Literal family names: Heebo's synthetic fallback face covers every script
@@ -1806,7 +1813,8 @@ html:has(.pour)::-webkit-scrollbar {
 .pour #lang a:lang(ar) {
   font-family: var(--font-cairo), sans-serif;
 }
-.pour #lang a:lang(en) {
+.pour #lang a:lang(en),
+.pour #lang a:lang(ru) {
   font-family: var(--font-ubuntu), sans-serif;
 }
 .pour #lang a:hover {
@@ -1867,8 +1875,10 @@ html:has(.pour)::-webkit-scrollbar {
   }
 }
 
-/* English labels run longer; the hours row gives a little to stay on one line. */
-.pour:lang(en) #lnk .hrs summary {
+/* English and Russian labels run longer; the hours row gives a little to stay
+   on one line. */
+.pour:lang(en) #lnk .hrs summary,
+.pour:lang(ru) #lnk .hrs summary {
   gap: 7px;
   padding: 0 13px;
   font-size: 13.5px;
