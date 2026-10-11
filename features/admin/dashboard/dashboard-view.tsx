@@ -75,7 +75,7 @@ export function DashboardView({ snapshot }: DashboardViewProps) {
     },
     {
       count: snapshot.itemsMissingTranslation,
-      label: "מנות גלויות בלי תרגום לערבית או לאנגלית",
+      label: "מנות גלויות שחסר להן תרגום",
       href: routes.adminMenu,
       action: "למנות",
     },

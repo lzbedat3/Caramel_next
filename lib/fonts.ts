@@ -8,7 +8,7 @@ export const fontHebrew = Heebo({
 });
 
 export const fontLatin = Ubuntu({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   weight: ["400", "500", "700"],
   preload: true,
   variable: "--font-ubuntu",

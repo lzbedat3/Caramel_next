@@ -11,7 +11,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import type { Tables } from "@/types/database";
 
 const SETTINGS_COLUMNS =
-  "seo_title, seo_description, credit_name, credit_url, dedication_by, dedication_by_ar, dedication_by_en, dedication_to, dedication_to_ar, dedication_to_en" as const;
+  "seo_title, seo_description, credit_name, credit_url, dedication_by, dedication_by_ar, dedication_by_en, dedication_by_ru, dedication_to, dedication_to_ar, dedication_to_en, dedication_to_ru" as const;
 
 export type PublicSiteSettings = Omit<
   Tables<"site_settings">,

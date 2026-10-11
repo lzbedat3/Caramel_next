@@ -31,7 +31,7 @@ export const ar: Dictionary = {
   refresh: "تحديث",
   madeWithLove: "صُنع بحب من قبل",
   loadingMenu: "جارٍ تحميل القائمة…",
-  eyebrow: "حلويات يدوية الصنع خالية من الغلوتين",
+  eyebrow: "مطعم وحلويات يدوية الصنع خالية من الغلوتين",
   language: "اللغة",
   toTop: "العودة إلى أعلى القائمة",
   seoDescription:

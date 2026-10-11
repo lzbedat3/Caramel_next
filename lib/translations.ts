@@ -1,7 +1,7 @@
 import { defaultLocale, locales, type Locale } from "@/config/locales";
 
 // Content is stored in the default language in its own column ("name") and in
-// one extra column per other language ("name_ar", "name_en").
+// one extra column per other language ("name_ar", "name_en", "name_ru").
 export type TranslationLocale = Exclude<Locale, "he">;
 
 export const translationLocales = locales.filter(
@@ -35,6 +35,15 @@ export function localizedText(
     }
   }
   return read(field);
+}
+
+// Whether any language is missing its version of a field.
+export function missingTranslation(row: object, field: string): boolean {
+  const values = row as Record<string, unknown>;
+  return translationLocales.some((locale) => {
+    const value = values[`${field}_${locale}`];
+    return typeof value !== "string" || !value.trim();
+  });
 }
 
 // The translation inputs of an admin form, ready to store: empty becomes null.

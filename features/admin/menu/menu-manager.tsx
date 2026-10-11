@@ -55,7 +55,7 @@ export function MenuManager({ categories, items }: MenuManagerProps) {
         categoryFilter === "all" || String(item.category_id) === categoryFilter;
       const matchesQuery =
         needle.length === 0 ||
-        [item.name, item.name_ar, item.name_en].some((name) =>
+        [item.name, item.name_ar, item.name_en, item.name_ru].some((name) =>
           name?.toLowerCase().includes(needle),
         );
       return matchesCategory && matchesQuery;

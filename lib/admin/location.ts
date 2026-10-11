@@ -3,7 +3,16 @@ const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const LOCATION_SLUG_MAX_LENGTH = 40;
 
 // Words the site already uses as the first part of an address.
-const RESERVED_SLUGS = ["he", "ar", "en", "admin", "portal", "auth", "api"];
+const RESERVED_SLUGS = [
+  "he",
+  "ar",
+  "en",
+  "ru",
+  "admin",
+  "portal",
+  "auth",
+  "api",
+];
 
 export type LocationFieldErrors = Partial<
   Record<"name" | "slug" | "wazeUrl", string>

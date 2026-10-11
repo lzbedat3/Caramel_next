@@ -23,7 +23,7 @@ A restaurant menu that is not a list. A ribbon of liquid caramel pours down the 
 
 **For the restaurant (admin portal):** profile, categories, dishes with photos and availability, opening hours with overnight intervals, social links, SEO copy. Server actions behind Supabase Row Level Security; the browser never sees a privileged key.
 
-**Nothing restaurant-specific lives in components.** Content comes from PostgreSQL, interface text from `lib/i18n` (Hebrew, Arabic, English), brand values from `config/site.ts`, and the caramel itself from `config/pour-theme.ts`. Swapping the theme's colours turns the pour into olive oil or chocolate for the next restaurant.
+**Nothing restaurant-specific lives in components.** Content comes from PostgreSQL, interface text from `lib/i18n` (Hebrew, Arabic, English, Russian), brand values from `config/site.ts`, and the caramel itself from `config/pour-theme.ts`. Swapping the theme's colours turns the pour into olive oil or chocolate for the next restaurant.
 
 ## Engineering highlights
 
@@ -46,7 +46,7 @@ A restaurant menu that is not a list. A ribbon of liquid caramel pours down the 
 
 ### Typography and i18n
 
-- Three scripts, three faces: Ubuntu for Latin and numbers, Heebo for Hebrew, Cairo for Arabic, resolved by unicode range rather than per-element rules. One subtle bug worth knowing: `next/font` attaches a synthetic Arial-based fallback to each face, and that fallback owns Hebrew glyphs, so an "Ubuntu, Heebo" stack never reached Heebo until Ubuntu was pinned to its Latin face.
+- Three scripts, three faces: Ubuntu for Latin, Cyrillic and numbers, Heebo for Hebrew, Cairo for Arabic, resolved by unicode range rather than per-element rules. One subtle bug worth knowing: `next/font` attaches a synthetic Arial-based fallback to each face, and that fallback owns Hebrew glyphs, so an "Ubuntu, Heebo" stack never reached Heebo until Ubuntu was pinned to its Latin face.
 - Dictionaries are checked by a test for identical keys across locales; prices are formatted with `Intl.NumberFormat`.
 
 ### Security and data

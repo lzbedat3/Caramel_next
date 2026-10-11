@@ -19,7 +19,7 @@ type LanguageSwitcherProps = {
 };
 
 // A small glass bead in the corner of the opening screen. It opens into the
-// three languages; each is a real link, so every language has its own address.
+// languages; each is a real link, so every language has its own address.
 export function LanguageSwitcher({
   locale,
   label,

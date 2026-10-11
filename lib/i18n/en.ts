@@ -31,7 +31,7 @@ export const en: Dictionary = {
   refresh: "Refresh",
   madeWithLove: "Built with love by",
   loadingMenu: "Loading the menu…",
-  eyebrow: "Handmade gluten-free patisserie",
+  eyebrow: "Restaurant & handmade gluten-free patisserie",
   language: "Language",
   toTop: "Back to the top of the menu",
   seoDescription:

@@ -22,11 +22,13 @@ export type Database = {
           name: string
           name_ar: string | null
           name_en: string | null
+          name_ru: string | null
           sort_order: number
           storage_path: string | null
           subtitle: string | null
           subtitle_ar: string | null
           subtitle_en: string | null
+          subtitle_ru: string | null
           updated_at: string
         }
         Insert: {
@@ -36,11 +38,13 @@ export type Database = {
           name: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           sort_order?: number
           storage_path?: string | null
           subtitle?: string | null
           subtitle_ar?: string | null
           subtitle_en?: string | null
+          subtitle_ru?: string | null
           updated_at?: string
         }
         Update: {
@@ -50,11 +54,13 @@ export type Database = {
           name?: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           sort_order?: number
           storage_path?: string | null
           subtitle?: string | null
           subtitle_ar?: string | null
           subtitle_en?: string | null
+          subtitle_ru?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -112,12 +118,14 @@ export type Database = {
           address: string | null
           address_ar: string | null
           address_en: string | null
+          address_ru: string | null
           created_at: string
           id: number
           is_active: boolean
           name: string
           name_ar: string | null
           name_en: string | null
+          name_ru: string | null
           phone: string | null
           slug: string
           sort_order: number
@@ -128,12 +136,14 @@ export type Database = {
           address?: string | null
           address_ar?: string | null
           address_en?: string | null
+          address_ru?: string | null
           created_at?: string
           id?: never
           is_active?: boolean
           name: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           phone?: string | null
           slug: string
           sort_order?: number
@@ -144,12 +154,14 @@ export type Database = {
           address?: string | null
           address_ar?: string | null
           address_en?: string | null
+          address_ru?: string | null
           created_at?: string
           id?: never
           is_active?: boolean
           name?: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           phone?: string | null
           slug?: string
           sort_order?: number
@@ -169,10 +181,12 @@ export type Database = {
           name: string
           name_ar: string | null
           name_en: string | null
+          name_ru: string | null
           price: number
           short_description: string | null
           short_description_ar: string | null
           short_description_en: string | null
+          short_description_ru: string | null
           sort_order: number
           storage_path: string | null
           updated_at: string
@@ -187,10 +201,12 @@ export type Database = {
           name: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           price: number
           short_description?: string | null
           short_description_ar?: string | null
           short_description_en?: string | null
+          short_description_ru?: string | null
           sort_order?: number
           storage_path?: string | null
           updated_at?: string
@@ -205,10 +221,12 @@ export type Database = {
           name?: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           price?: number
           short_description?: string | null
           short_description_ar?: string | null
           short_description_en?: string | null
+          short_description_ru?: string | null
           sort_order?: number
           storage_path?: string | null
           updated_at?: string
@@ -275,9 +293,11 @@ export type Database = {
           about: string | null
           about_ar: string | null
           about_en: string | null
+          about_ru: string | null
           address: string | null
           address_ar: string | null
           address_en: string | null
+          address_ru: string | null
           created_at: string
           email: string | null
           id: number
@@ -286,10 +306,12 @@ export type Database = {
           name: string
           name_ar: string | null
           name_en: string | null
+          name_ru: string | null
           phone: string | null
           subtitle: string | null
           subtitle_ar: string | null
           subtitle_en: string | null
+          subtitle_ru: string | null
           updated_at: string
           waze_url: string | null
         }
@@ -297,9 +319,11 @@ export type Database = {
           about?: string | null
           about_ar?: string | null
           about_en?: string | null
+          about_ru?: string | null
           address?: string | null
           address_ar?: string | null
           address_en?: string | null
+          address_ru?: string | null
           created_at?: string
           email?: string | null
           id?: number
@@ -308,10 +332,12 @@ export type Database = {
           name: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           phone?: string | null
           subtitle?: string | null
           subtitle_ar?: string | null
           subtitle_en?: string | null
+          subtitle_ru?: string | null
           updated_at?: string
           waze_url?: string | null
         }
@@ -319,9 +345,11 @@ export type Database = {
           about?: string | null
           about_ar?: string | null
           about_en?: string | null
+          about_ru?: string | null
           address?: string | null
           address_ar?: string | null
           address_en?: string | null
+          address_ru?: string | null
           created_at?: string
           email?: string | null
           id?: number
@@ -330,10 +358,12 @@ export type Database = {
           name?: string
           name_ar?: string | null
           name_en?: string | null
+          name_ru?: string | null
           phone?: string | null
           subtitle?: string | null
           subtitle_ar?: string | null
           subtitle_en?: string | null
+          subtitle_ru?: string | null
           updated_at?: string
           waze_url?: string | null
         }
@@ -397,9 +427,11 @@ export type Database = {
           dedication_by: string | null
           dedication_by_ar: string | null
           dedication_by_en: string | null
+          dedication_by_ru: string | null
           dedication_to: string | null
           dedication_to_ar: string | null
           dedication_to_en: string | null
+          dedication_to_ru: string | null
           id: number
           seo_description: string | null
           seo_title: string | null
@@ -412,9 +444,11 @@ export type Database = {
           dedication_by?: string | null
           dedication_by_ar?: string | null
           dedication_by_en?: string | null
+          dedication_by_ru?: string | null
           dedication_to?: string | null
           dedication_to_ar?: string | null
           dedication_to_en?: string | null
+          dedication_to_ru?: string | null
           id?: number
           seo_description?: string | null
           seo_title?: string | null
@@ -427,9 +461,11 @@ export type Database = {
           dedication_by?: string | null
           dedication_by_ar?: string | null
           dedication_by_en?: string | null
+          dedication_by_ru?: string | null
           dedication_to?: string | null
           dedication_to_ar?: string | null
           dedication_to_en?: string | null
+          dedication_to_ru?: string | null
           id?: number
           seo_description?: string | null
           seo_title?: string | null
