@@ -29,7 +29,7 @@ export const he = {
   refresh: "רענון",
   madeWithLove: "נבנה באהבה ע״י",
   loadingMenu: "טוען את התפריט…",
-  eyebrow: "קונדיטוריה בעבודת יד ללא גלוטן",
+  eyebrow: "מסעדה וקונדיטוריה בעבודת יד ללא גלוטן",
   language: "שפה",
   toTop: "חזרה לראש התפריט",
   seoDescription:
