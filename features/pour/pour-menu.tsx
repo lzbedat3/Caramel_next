@@ -12,10 +12,12 @@ import {
   PourStage,
   type StageDish,
   type StageImage,
+  type StageSize,
 } from "@/features/pour/pour-stage";
 import { format, getDictionary } from "@/lib/i18n";
 import { IMAGE_WIDTHS, optimizedSource } from "@/lib/media/image-variants";
 import { formatPriceParts } from "@/lib/price";
+import { SIZES, type SizePrices } from "@/lib/sizes";
 import { isRemoteSvg } from "@/lib/storage-url";
 import type { PublicHomeContent } from "@/services/public-home";
 
@@ -49,6 +51,16 @@ function gallerySources(src: string): StageImage {
     unoptimized: isRemoteSvg(src),
   });
   return { src: props.src, srcSet: props.srcSet, sizes: props.sizes };
+}
+
+function stageSizes(sizes: SizePrices | null): StageSize[] | null {
+  return sizes
+    ? SIZES.map((size) => ({
+        size,
+        value: sizes[size],
+        price: formatPriceParts(sizes[size]),
+      }))
+    : null;
 }
 
 function pad(value: number): string {
@@ -93,6 +105,7 @@ export function PourMenu({
       description: item.shortDescription,
       value: item.price,
       price: formatPriceParts(item.price),
+      sizes: stageSizes(item.sizes),
       isAvailable: item.isAvailable,
       detail: item.imageSrc
         ? { src: optimizedSource(item.imageSrc, IMAGE_WIDTHS.detail) }
@@ -203,6 +216,7 @@ export function PourMenu({
               {items.map((item, index) => {
                 const side = sides[index % 2] ?? "R";
                 const price = formatPriceParts(item.price);
+                const sizes = stageSizes(item.sizes);
                 const eager = position++ < EAGER_DISHES;
                 return (
                   <article
@@ -241,7 +255,29 @@ export function PourMenu({
                     <div className="tx">
                       <div>
                         <h3>{item.name}</h3>
-                        {price ? (
+                        {sizes ? (
+                          // The prices climb with the size, like steps.
+                          <span
+                            className="steps"
+                            dir="ltr"
+                            role="group"
+                            aria-label={strings.size}
+                          >
+                            <i>{sizes[0]?.price?.symbol}</i>
+                            {sizes.map(({ size, price: sizePrice }) => (
+                              <button
+                                key={size}
+                                type="button"
+                                className="step"
+                                data-size={size}
+                                aria-label={`${item.name} ${size} ${sizePrice?.symbol ?? ""}${sizePrice?.amount ?? ""}`}
+                              >
+                                <u>{size}</u>
+                                <b>{sizePrice?.amount}</b>
+                              </button>
+                            ))}
+                          </span>
+                        ) : price ? (
                           <span className="pr" dir="ltr">
                             <i>{price.symbol}</i>
                             {price.amount}

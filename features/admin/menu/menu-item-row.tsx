@@ -2,7 +2,7 @@
 
 import { StorageThumb } from "@/components/admin/storage-thumb";
 import { cn } from "@/lib/cn";
-import { formatPriceIls } from "@/lib/price";
+import { menuItemPriceLabel } from "@/lib/price";
 import { missingTranslation } from "@/lib/translations";
 import type { AdminMenuItem } from "@/services/admin-menu";
 
@@ -90,8 +90,8 @@ export function MenuItemRow({
               {item.name}
             </span>
             <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
-              <span className="text-muted text-xs tabular-nums">
-                {formatPriceIls(item.price)}
+              <span className="text-muted text-xs tabular-nums" dir="ltr">
+                {menuItemPriceLabel(item)}
               </span>
               {item.is_visible ? null : <Flag tone="quiet">מוסתרת</Flag>}
               {item.is_available ? null : <Flag tone="warn">לא זמינה</Flag>}

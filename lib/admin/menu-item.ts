@@ -1,4 +1,5 @@
 import { createId } from "@/lib/id";
+import { SIZES, type Size, type SizePrices } from "@/lib/sizes";
 
 export const MENU_ITEM_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -40,7 +41,10 @@ const PRICE_RE = /^\d+(\.\d{1,2})?$/;
 const PRICE_MAX = 99_999_999.99;
 
 export type MenuItemFieldErrors = Partial<
-  Record<"name" | "price" | "categoryId" | "file" | "storagePath", string>
+  Record<
+    "name" | "price" | "sizes" | "categoryId" | "file" | "storagePath",
+    string
+  >
 >;
 
 export type MenuItemMetadataInput = {
@@ -48,7 +52,72 @@ export type MenuItemMetadataInput = {
   shortDescription: string;
   price: string;
   categoryId: string;
+  /** The dish comes in S, M and L, each with its own price, instead of one price. */
+  hasSizes: boolean;
+  sizes: Record<Size, string>;
 };
+
+export function readMenuItemMetadata(
+  formData: FormData,
+): MenuItemMetadataInput {
+  const text = (name: string) => String(formData.get(name) ?? "");
+  return {
+    name: text("name"),
+    shortDescription: text("short_description"),
+    price: text("price"),
+    categoryId: text("category_id"),
+    hasSizes: formData.get("has_sizes") === "on",
+    sizes: { S: text("price_s"), M: text("price_m"), L: text("price_l") },
+  };
+}
+
+/** The three size prices, or the first problem with them. */
+export function parseSizePrices(
+  sizes: Record<Size, string>,
+): { value: SizePrices } | { error: string } {
+  const value: Partial<SizePrices> = {};
+  for (const size of SIZES) {
+    const price = parsePrice(sizes[size]);
+    if ("error" in price) {
+      return { error: `${size}: ${price.error}` };
+    }
+    value[size] = price.value;
+  }
+  return { value: value as SizePrices };
+}
+
+/**
+ * What is saved: one price, or the three size prices with the small one as
+ * the price shown wherever a single price is needed.
+ */
+export function menuItemPrices(
+  input: MenuItemMetadataInput,
+):
+  | {
+      price: number;
+      price_s: number | null;
+      price_m: number | null;
+      price_l: number | null;
+    }
+  | { error: string } {
+  if (input.hasSizes) {
+    const sizes = parseSizePrices(input.sizes);
+    if ("error" in sizes) {
+      return sizes;
+    }
+    return {
+      price: sizes.value.S,
+      price_s: sizes.value.S,
+      price_m: sizes.value.M,
+      price_l: sizes.value.L,
+    };
+  }
+  const price = parsePrice(input.price);
+  if ("error" in price) {
+    return price;
+  }
+  return { price: price.value, price_s: null, price_m: null, price_l: null };
+}
 
 function isMenuItemImageMime(
   value: string,
@@ -167,9 +236,16 @@ export function validateMenuItemMetadata(
     errors.categoryId = "יש לבחור קטגוריה";
   }
 
-  const price = parsePrice(input.price);
-  if ("error" in price) {
-    errors.price = price.error;
+  if (input.hasSizes) {
+    const sizes = parseSizePrices(input.sizes);
+    if ("error" in sizes) {
+      errors.sizes = sizes.error;
+    }
+  } else {
+    const price = parsePrice(input.price);
+    if ("error" in price) {
+      errors.price = price.error;
+    }
   }
 
   return errors;

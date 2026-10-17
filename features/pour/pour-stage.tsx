@@ -19,15 +19,23 @@ import { shouldPlaySplash, Splash } from "@/features/pour/splash";
 import { loadTable, saveTable } from "@/features/pour/table/storage";
 import {
   emptyTable,
+  lineKey,
+  parseLineKey,
   reconcile,
   tableReducer,
   totals,
+  type LineKey,
 } from "@/features/pour/table/table";
 import { cn } from "@/lib/cn";
 import type { Dictionary } from "@/lib/i18n";
 import { showOriginal } from "@/lib/media/original-image";
+import { isSize, type Size } from "@/lib/sizes";
 
 export type StageImage = { src: string; srcSet?: string; sizes?: string };
+
+export type StagePrice = { symbol: string; amount: string } | null;
+
+export type StageSize = { size: Size; value: number; price: StagePrice };
 
 export type StageDish = {
   id: number;
@@ -35,7 +43,9 @@ export type StageDish = {
   name: string;
   description: string | null;
   value: number;
-  price: { symbol: string; amount: string } | null;
+  price: StagePrice;
+  /** S, M and L in that order when the dish comes in sizes. */
+  sizes: StageSize[] | null;
   isAvailable: boolean;
   detail: StageImage | null;
   thumb: StageImage | null;
@@ -57,6 +67,8 @@ const TAP_HOLD_MS = 80;
 const LOOKAHEAD = "200% 0px";
 // How many photos of a category are fetched ahead when the guest jumps to it.
 const JUMP_AHEAD = 4;
+// The size a dish opens on when the guest taps its photo.
+const DEFAULT_SIZE: Size = "M";
 
 function loadNow(img: HTMLImageElement | null | undefined) {
   if (img && img.loading === "lazy") {
@@ -143,6 +155,7 @@ export function PourStage({
     dish: StageDish;
     lowSrc: string | null;
   } | null>(null);
+  const [openSize, setOpenSize] = useState<Size>(DEFAULT_SIZE);
   // The ring the open dish grew out of; the dialog hides it and shrinks back into it.
   const originRef = useRef<HTMLElement | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -302,7 +315,14 @@ export function PourStage({
     }
     dispatch({
       type: "replace",
-      state: reconcile(loadTable(storageKey), dishes),
+      state: reconcile(
+        loadTable(storageKey),
+        dishes.map((dish) => ({
+          id: dish.id,
+          isAvailable: dish.isAvailable,
+          sized: dish.sizes !== null,
+        })),
+      ),
     });
     hydrated.current = true;
   }, [storageKey, dishes]);
@@ -310,6 +330,21 @@ export function PourStage({
   const dishById = useCallback(
     (id: number) => dishes.find((dish) => dish.id === id),
     [dishes],
+  );
+
+  // What one line of the table costs: the dish, or the size of it.
+  const linePrice = useCallback(
+    (key: LineKey) => {
+      const line = parseLineKey(key);
+      const dish = line ? dishById(line.id) : undefined;
+      if (!line || !dish) {
+        return 0;
+      }
+      return line.size
+        ? (dish.sizes?.find((entry) => entry.size === line.size)?.value ?? 0)
+        : dish.value;
+    },
+    [dishById],
   );
 
   // The large photo is fetched only when the guest reaches for a dish: a press
@@ -356,17 +391,23 @@ export function PourStage({
       root.removeEventListener("pointercancel", release);
     };
   }, [dishById, prefetch]);
-  const { count, total } = totals(table, (id) => dishById(id)?.value ?? 0);
+  const { count, total } = totals(table, linePrice);
 
   function onRootClick(event: React.MouseEvent<HTMLDivElement>) {
     const target = event.target as Element;
-    const ph = target.closest<HTMLElement>(".ph");
+    // A size price beside the ring opens the dish on that size.
+    const step = target.closest<HTMLElement>(".dish .step");
+    const ph =
+      target.closest<HTMLElement>(".ph") ??
+      step?.closest(".dish")?.querySelector<HTMLElement>(".ph");
     if (!ph) {
       return;
     }
     const dish = dishById(Number(ph.closest<HTMLElement>(".dish")?.dataset.id));
     if (dish) {
       originRef.current = ph;
+      const size = step?.dataset.size;
+      setOpenSize(isSize(size) ? size : DEFAULT_SIZE);
       // The ring's photo is already on screen; the dialog shows it at once and
       // swaps in the large one when it arrives.
       setOpen({
@@ -519,7 +560,9 @@ export function PourStage({
         lowSrc={open?.lowSrc ?? null}
         originRef={originRef}
         strings={strings}
-        onAdd={(id) => dispatch({ type: "add", id })}
+        size={openSize}
+        onSize={setOpenSize}
+        onAdd={(id, size) => dispatch({ type: "add", key: lineKey(id, size) })}
         onClosed={() => setOpen(null)}
       />
       <MyTable
@@ -527,16 +570,17 @@ export function PourStage({
         total={total}
         count={count}
         dishById={dishById}
+        linePrice={linePrice}
         strings={strings}
         sheetOpen={sheetOpen && count > 0}
         onOpen={() => setSheetOpen(true)}
         onClose={() => setSheetOpen(false)}
-        onStep={(id, by) => {
+        onStep={(key, by) => {
           // Removing the last dish closes the sheet instead of leaving it armed to reopen.
           if (by === -1 && count === 1) {
             setSheetOpen(false);
           }
-          dispatch({ type: "step", id, by });
+          dispatch({ type: "step", key, by });
         }}
       />
     </div>

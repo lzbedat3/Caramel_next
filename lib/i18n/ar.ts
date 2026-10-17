@@ -6,6 +6,7 @@ export const ar: Dictionary = {
   open: "مفتوح الآن",
   closed: "مغلق الآن",
   unavailable: "غير متوفر حاليًا",
+  size: "الحجم",
   addToTable: "إلى طاولتي",
   myTable: "طاولتي",
   summary: "الملخّص",
