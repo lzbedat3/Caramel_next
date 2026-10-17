@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import {
   MENU_ITEM_IMAGE_ACCEPT,
   validateMenuItemImageFile,
+  readMenuItemMetadata,
   validateMenuItemMetadata,
 } from "@/lib/admin/menu-item";
 import { cn } from "@/lib/cn";
@@ -46,6 +47,7 @@ export function MenuCreateForm({
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     price?: string;
+    sizes?: string;
     categoryId?: string;
   }>({});
   const [saving, setSaving] = useState(false);
@@ -102,12 +104,7 @@ export function MenuCreateForm({
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const errors = validateMenuItemMetadata({
-      name: String(formData.get("name") ?? ""),
-      shortDescription: String(formData.get("short_description") ?? ""),
-      price: String(formData.get("price") ?? ""),
-      categoryId: String(formData.get("category_id") ?? ""),
-    });
+    const errors = validateMenuItemMetadata(readMenuItemMetadata(formData));
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -209,6 +206,7 @@ export function MenuCreateForm({
             disabled={busy}
             nameError={fieldErrors.name}
             priceError={fieldErrors.price}
+            sizesError={fieldErrors.sizes}
             categoryError={fieldErrors.categoryId}
           />
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:gap-6">

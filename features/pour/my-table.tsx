@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { StageDish } from "@/features/pour/pour-stage";
-import type { TableState } from "@/features/pour/table/table";
+import {
+  parseLineKey,
+  type LineKey,
+  type TableState,
+} from "@/features/pour/table/table";
 import type { Dictionary } from "@/lib/i18n";
 import { formatPriceParts } from "@/lib/price";
 
@@ -12,11 +16,12 @@ type MyTableProps = {
   total: number;
   count: number;
   dishById: (id: number) => StageDish | undefined;
+  linePrice: (key: LineKey) => number;
   strings: Dictionary;
   sheetOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
-  onStep: (id: number, by: 1 | -1) => void;
+  onStep: (key: LineKey, by: 1 | -1) => void;
 };
 
 function priceLabel(value: number): string {
@@ -38,6 +43,7 @@ export function MyTable({
   total,
   count,
   dishById,
+  linePrice,
   strings,
   sheetOpen,
   onOpen,
@@ -76,9 +82,9 @@ export function MyTable({
           }}
         >
           <span className="st">
-            {table.order.slice(-4).map((id) => (
-              <span key={id}>
-                <Thumb dish={dishById(id)} />
+            {table.order.slice(-4).map((key) => (
+              <span key={key}>
+                <Thumb dish={dishById(parseLineKey(key)?.id ?? 0)} />
               </span>
             ))}
           </span>
@@ -104,23 +110,31 @@ export function MyTable({
           />
         </header>
         <div id="ct-rows">
-          {table.order.map((id) => {
-            const dish = dishById(id);
-            const quantity = table.qty[id] ?? 0;
-            if (!dish) {
+          {table.order.map((key) => {
+            const line = parseLineKey(key);
+            const dish = line ? dishById(line.id) : undefined;
+            const quantity = table.qty[key] ?? 0;
+            if (!line || !dish) {
               return null;
             }
             return (
-              <div className="ct-row" key={id}>
+              <div className="ct-row" key={key}>
                 <span className="ct-th">
                   <Thumb dish={dish} />
                 </span>
-                <b>{dish.name}</b>
+                <b>
+                  {dish.name}
+                  {line.size ? (
+                    <span className="ct-sz" dir="ltr">
+                      {line.size}
+                    </span>
+                  ) : null}
+                </b>
                 <span className="ct-q">
                   <button
                     type="button"
                     aria-label={strings.decrease}
-                    onClick={() => onStep(id, -1)}
+                    onClick={() => onStep(key, -1)}
                   >
                     −
                   </button>
@@ -128,13 +142,13 @@ export function MyTable({
                   <button
                     type="button"
                     aria-label={strings.increase}
-                    onClick={() => onStep(id, 1)}
+                    onClick={() => onStep(key, 1)}
                   >
                     +
                   </button>
                 </span>
                 <span className="ct-p" dir="ltr">
-                  {priceLabel(dish.value * quantity)}
+                  {priceLabel(linePrice(key) * quantity)}
                 </span>
               </div>
             );

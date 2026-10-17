@@ -6,6 +6,7 @@ export const ru: Dictionary = {
   open: "Сейчас открыто",
   closed: "Сейчас закрыто",
   unavailable: "Сейчас нет в наличии",
+  size: "Размер",
   addToTable: "На мой стол",
   myTable: "Мой стол",
   summary: "Итого",

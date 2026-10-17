@@ -10,6 +10,7 @@ import type { PublicCategory, PublicMenuItem } from "@/lib/public-content";
 import type { PublicSocialLink } from "@/lib/social";
 import { getPublicStorageUrl } from "@/lib/storage-url";
 import { emptyReviews, type PublicReviews } from "@/lib/reviews";
+import { sizePricesFromRow } from "@/lib/sizes";
 import { createPublicClient } from "@/lib/supabase/public";
 import { localizedText, localizeProfile } from "@/lib/translations";
 import { getPublicSeoContent } from "@/services/public-seo";
@@ -120,6 +121,7 @@ function toPublicMenuItem(
     name: localizedText(row, "name", locale) ?? row.name,
     shortDescription: localizedText(row, "short_description", locale),
     price: Number(row.price),
+    sizes: sizePricesFromRow(row),
     imageSrc: getPublicStorageUrl(storageBuckets.menuItems, row.storage_path),
     isAvailable: row.is_available,
   };

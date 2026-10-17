@@ -1,5 +1,11 @@
+"use client";
+
+import { useState } from "react";
+
 import { TranslationFields } from "@/components/admin/translation-fields";
+import { formatPriceInput } from "@/lib/admin/menu-item";
 import { cn } from "@/lib/cn";
+import { SIZES, type SizePrices } from "@/lib/sizes";
 import type { TranslationKey } from "@/lib/translations";
 import type { AdminMenuCategoryOption } from "@/services/admin-menu";
 
@@ -12,12 +18,15 @@ type MenuItemFieldsProps = {
   name?: string;
   shortDescription?: string;
   price?: string;
+  /** Set when the dish already comes in sizes. */
+  sizes?: SizePrices | null;
   categoryId?: number;
   translations?: Partial<
     Record<TranslationKey<"name" | "short_description">, string | null>
   >;
   nameError?: string;
   priceError?: string;
+  sizesError?: string;
   categoryError?: string;
   disabled?: boolean;
 };
@@ -28,13 +37,17 @@ export function MenuItemFields({
   name = "",
   shortDescription = "",
   price = "",
+  sizes = null,
   categoryId,
   translations,
   nameError,
   priceError,
+  sizesError,
   categoryError,
   disabled,
 }: MenuItemFieldsProps) {
+  const [hasSizes, setHasSizes] = useState(sizes !== null);
+  const sizesToggleId = `${idPrefix}-has-sizes`;
   const nameId = `${idPrefix}-name`;
   const descriptionId = `${idPrefix}-description`;
   const priceId = `${idPrefix}-price`;
@@ -142,47 +155,127 @@ export function MenuItemFields({
         values={translations}
         disabled={disabled}
       />
-      <div className="flex max-w-56 flex-col gap-1.5">
+      <div className="flex flex-col gap-3">
         <label
-          htmlFor={priceId}
-          className="text-foreground text-sm font-medium"
+          htmlFor={sizesToggleId}
+          className="rounded-control has-[:focus-visible]:ring-ring flex w-fit cursor-pointer items-center gap-2 px-1 py-1 has-[:focus-visible]:ring-2"
         >
-          מחיר
-          <span className="text-caramel-deep ms-1" aria-hidden="true">
-            *
+          <input
+            id={sizesToggleId}
+            name="has_sizes"
+            type="checkbox"
+            checked={hasSizes}
+            onChange={(event) => setHasSizes(event.target.checked)}
+            disabled={disabled}
+            className="accent-caramel size-4"
+          />
+          <span className="text-foreground text-sm">
+            המנה מגיעה בגדלים S / M / L
           </span>
         </label>
-        <div className="flex items-center gap-2">
-          <input
-            id={priceId}
-            name="price"
-            required
-            inputMode="decimal"
-            dir="ltr"
-            defaultValue={price}
-            disabled={disabled}
-            aria-invalid={Boolean(priceError)}
-            aria-describedby={
-              priceError ? `${priceId}-error` : `${priceId}-hint`
-            }
-            className={menuInputClassName}
-          />
-          <span className="text-muted text-sm" aria-hidden="true">
-            ₪
-          </span>
-        </div>
-        {priceError ? (
-          <p
-            id={`${priceId}-error`}
-            role="alert"
-            className="text-caramel-deep text-sm"
-          >
-            {priceError}
-          </p>
+        {hasSizes ? (
+          <fieldset className="flex flex-col gap-1.5">
+            <legend className="text-foreground mb-1.5 text-sm font-medium">
+              מחיר לכל גודל
+              <span className="text-caramel-deep ms-1" aria-hidden="true">
+                *
+              </span>
+            </legend>
+            <div className="grid max-w-md grid-cols-3 gap-2" dir="ltr">
+              {SIZES.map((size) => {
+                const sizeId = `${idPrefix}-price-${size.toLowerCase()}`;
+                return (
+                  <div key={size} className="flex flex-col gap-1">
+                    <label
+                      htmlFor={sizeId}
+                      className="text-muted text-xs font-semibold tracking-widest"
+                    >
+                      {size}
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        id={sizeId}
+                        name={`price_${size.toLowerCase()}`}
+                        required
+                        inputMode="decimal"
+                        defaultValue={
+                          sizes ? formatPriceInput(sizes[size]) : ""
+                        }
+                        disabled={disabled}
+                        aria-invalid={Boolean(sizesError)}
+                        aria-describedby={`${idPrefix}-sizes-${sizesError ? "error" : "hint"}`}
+                        className={menuInputClassName}
+                      />
+                      <span className="text-muted text-sm" aria-hidden="true">
+                        ₪
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {sizesError ? (
+              <p
+                id={`${idPrefix}-sizes-error`}
+                role="alert"
+                className="text-caramel-deep text-sm"
+              >
+                {sizesError}
+              </p>
+            ) : (
+              <p
+                id={`${idPrefix}-sizes-hint`}
+                className="text-muted-soft text-xs"
+              >
+                כרטיס אחד ותמונה אחת בתפריט; האורח בוחר גודל. המחיר של S מוצג
+                בכל מקום שצריך מחיר אחד.
+              </p>
+            )}
+          </fieldset>
         ) : (
-          <p id={`${priceId}-hint`} className="text-muted-soft text-xs">
-            מספר בלבד, עד שתי ספרות אחרי הנקודה.
-          </p>
+        <div className="flex max-w-56 flex-col gap-1.5">
+          <label
+            htmlFor={priceId}
+            className="text-foreground text-sm font-medium"
+          >
+            מחיר
+            <span className="text-caramel-deep ms-1" aria-hidden="true">
+              *
+            </span>
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              id={priceId}
+              name="price"
+              required
+              inputMode="decimal"
+              dir="ltr"
+              defaultValue={price}
+              disabled={disabled}
+              aria-invalid={Boolean(priceError)}
+              aria-describedby={
+                priceError ? `${priceId}-error` : `${priceId}-hint`
+              }
+              className={menuInputClassName}
+            />
+            <span className="text-muted text-sm" aria-hidden="true">
+              ₪
+            </span>
+          </div>
+          {priceError ? (
+            <p
+              id={`${priceId}-error`}
+              role="alert"
+              className="text-caramel-deep text-sm"
+            >
+              {priceError}
+            </p>
+          ) : (
+            <p id={`${priceId}-hint`} className="text-muted-soft text-xs">
+              מספר בלבד, עד שתי ספרות אחרי הנקודה.
+            </p>
+          )}
+        </div>
         )}
       </div>
     </div>

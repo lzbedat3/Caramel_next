@@ -183,6 +183,9 @@ export type Database = {
           name_en: string | null
           name_ru: string | null
           price: number
+          price_l: number | null
+          price_m: number | null
+          price_s: number | null
           short_description: string | null
           short_description_ar: string | null
           short_description_en: string | null
@@ -203,6 +206,9 @@ export type Database = {
           name_en?: string | null
           name_ru?: string | null
           price: number
+          price_l?: number | null
+          price_m?: number | null
+          price_s?: number | null
           short_description?: string | null
           short_description_ar?: string | null
           short_description_en?: string | null
@@ -223,6 +229,9 @@ export type Database = {
           name_en?: string | null
           name_ru?: string | null
           price?: number
+          price_l?: number | null
+          price_m?: number | null
+          price_s?: number | null
           short_description?: string | null
           short_description_ar?: string | null
           short_description_en?: string | null

@@ -6,6 +6,7 @@ export const en: Dictionary = {
   open: "Open now",
   closed: "Closed now",
   unavailable: "Unavailable right now",
+  size: "Size",
   addToTable: "Add to my table",
   myTable: "My table",
   summary: "Summary",

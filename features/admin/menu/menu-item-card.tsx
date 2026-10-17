@@ -14,11 +14,13 @@ import {
   formatPriceInput,
   MENU_ITEM_IMAGE_ACCEPT,
   validateMenuItemImageFile,
+  readMenuItemMetadata,
   validateMenuItemMetadata,
 } from "@/lib/admin/menu-item";
 import { StorageThumb } from "@/components/admin/storage-thumb";
 import { cn } from "@/lib/cn";
-import { formatPriceIls } from "@/lib/price";
+import { menuItemPriceLabel } from "@/lib/price";
+import { sizePricesFromRow } from "@/lib/sizes";
 import type {
   AdminMenuCategoryOption,
   AdminMenuItem,
@@ -65,6 +67,7 @@ export function MenuItemCard({
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     price?: string;
+    sizes?: string;
     categoryId?: string;
   }>({});
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -127,12 +130,7 @@ export function MenuItemCard({
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const errors = validateMenuItemMetadata({
-      name: String(formData.get("name") ?? ""),
-      shortDescription: String(formData.get("short_description") ?? ""),
-      price: String(formData.get("price") ?? ""),
-      categoryId: String(formData.get("category_id") ?? ""),
-    });
+    const errors = validateMenuItemMetadata(readMenuItemMetadata(formData));
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -209,8 +207,8 @@ export function MenuItemCard({
                 </span>
               )}
             </div>
-            <p className="text-muted-soft text-xs">
-              {formatPriceIls(item.price)}
+            <p className="text-muted-soft text-xs" dir="ltr">
+              {menuItemPriceLabel(item)}
             </p>
           </div>
 
@@ -243,11 +241,13 @@ export function MenuItemCard({
               name={item.name}
               shortDescription={item.short_description ?? ""}
               price={formatPriceInput(item.price)}
+              sizes={sizePricesFromRow(item)}
               categoryId={item.category_id}
               translations={item}
               disabled={busy}
               nameError={fieldErrors.name}
               priceError={fieldErrors.price}
+            sizesError={fieldErrors.sizes}
               categoryError={fieldErrors.categoryId}
             />
           </div>

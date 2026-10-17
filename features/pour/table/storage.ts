@@ -1,7 +1,15 @@
-import { emptyTable, type TableState } from "./table";
+import { emptyTable, parseLineKey, type TableState } from "./table";
 
 function isPositiveInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+}
+
+// Tables saved before sizes existed list bare dish ids as numbers.
+function toLineKey(value: unknown): string | null {
+  if (isPositiveInteger(value)) {
+    return String(value);
+  }
+  return typeof value === "string" && parseLineKey(value) ? value : null;
 }
 
 export function parseStored(raw: string | null): TableState {
@@ -21,19 +29,22 @@ export function parseStored(raw: string | null): TableState {
     }
 
     const quantities = qty as Record<string, unknown>;
-    const clean: Record<number, number> = {};
-    for (const id of order) {
-      if (!isPositiveInteger(id) || id in clean) {
+    const keys: string[] = [];
+    const clean: Record<string, number> = {};
+    for (const entry of order) {
+      const key = toLineKey(entry);
+      if (!key || key in clean) {
         return emptyTable;
       }
-      const quantity = quantities[String(id)];
+      const quantity = quantities[key];
       if (!isPositiveInteger(quantity)) {
         return emptyTable;
       }
-      clean[id] = quantity;
+      keys.push(key);
+      clean[key] = quantity;
     }
 
-    return { order: [...order] as number[], qty: clean };
+    return { order: keys, qty: clean };
   } catch {
     return emptyTable;
   }

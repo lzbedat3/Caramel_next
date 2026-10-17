@@ -2444,3 +2444,242 @@ html:has(.pour)::-webkit-scrollbar {
 .pour #reviews .rv-reply p {
   margin: 3px 0 0;
 }
+
+/* ---------- sizes: one card, three prices ---------- */
+.pour {
+  /* Beside the ring the prices climb like steps: the bigger the size, the
+     bigger its number, each standing on a bar of caramel of its own width. */
+  .tx .steps {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 11px;
+    margin-top: 9px;
+    direction: ltr;
+    unicode-bidi: isolate;
+    pointer-events: auto;
+  }
+  .tx .steps > i {
+    align-self: flex-end;
+    margin-bottom: 12px;
+    margin-right: -6px;
+    font:
+      400 12px/1 var(--font-ubuntu),
+      var(--font-cairo),
+      sans-serif;
+    font-style: normal;
+    color: var(--amber);
+    opacity: 0.8;
+  }
+  .step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 9px;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .step:active {
+    transform: scale(0.94);
+  }
+  .step u {
+    margin-bottom: 5px;
+    text-decoration: none;
+    font:
+      600 10px/1 var(--font-ubuntu),
+      sans-serif;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+  .step b {
+    font-family: var(--font-ubuntu), var(--font-cairo), sans-serif;
+    font-weight: 500;
+    line-height: 0.9;
+    letter-spacing: 0.01em;
+    color: var(--amber);
+  }
+  .step[data-size="S"] b {
+    font-size: 16px;
+    opacity: 0.82;
+  }
+  .step[data-size="M"] b {
+    font-size: 21px;
+    opacity: 0.92;
+  }
+  .step[data-size="L"] b {
+    font-size: 27px;
+    color: var(--gold);
+  }
+  .step::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    height: 3px;
+    border-radius: 3px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #b9650f, #f6c062, #b9650f);
+  }
+  .step[data-size="S"]::after {
+    width: 10px;
+    opacity: 0.5;
+  }
+  .step[data-size="M"]::after {
+    width: 18px;
+    opacity: 0.75;
+  }
+  .step[data-size="L"]::after {
+    width: 28px;
+  }
+  .dish[data-unavailable] .tx .steps {
+    opacity: 0.6;
+  }
+
+  /* The open dish leans in as the size grows. */
+  #xf img {
+    transition:
+      opacity 0.25s ease,
+      transform 0.6s cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+  #xf[data-size="M"] img {
+    transform: scale(1.06);
+  }
+  #xf[data-size="L"] img {
+    transform: scale(1.12);
+  }
+
+  /* The size picker: three wells, one drop of caramel that pours between them. */
+  .szp {
+    --i: 1;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 252px;
+    margin: 18px auto 0;
+  }
+  .szp::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 16.66%;
+    right: 16.66%;
+    border-top: 2px dotted rgba(246, 192, 98, 0.22);
+  }
+  .szp-goo {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 44px;
+    filter: url(#goo);
+    pointer-events: none;
+  }
+  .szp-blob,
+  .szp-trail {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--i) * 33.333% + 16.666%);
+    border-radius: 50%;
+    background: linear-gradient(170deg, #f6c062, #e39a2b 45%, #b9650f);
+  }
+  .szp-blob {
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    transform: scale(calc(0.72 + var(--i) * 0.14));
+    transition:
+      left 0.42s cubic-bezier(0.3, 1.4, 0.5, 1),
+      transform 0.42s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+  /* Lags behind the drop, so the caramel stretches as it pours. */
+  .szp-trail {
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    transition: left 0.62s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .szp-o {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .szp-o u {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    text-decoration: none;
+    font:
+      800 13px/1 var(--font-ubuntu),
+      sans-serif;
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+  .szp-o b {
+    margin-top: 7px;
+    font:
+      500 13.5px/1 var(--font-ubuntu),
+      var(--font-cairo),
+      sans-serif;
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+  .szp-o[aria-checked="true"] u {
+    color: #2a1003;
+  }
+  .szp-o[aria-checked="true"] b {
+    color: var(--gold);
+  }
+  .szp-o:not([aria-checked="true"]) u {
+    box-shadow: inset 0 0 0 1px rgba(245, 232, 210, 0.16);
+    background: rgba(245, 232, 210, 0.05);
+  }
+  #xi .szp + .xp {
+    margin-top: 14px;
+  }
+  #xadd em {
+    display: inline-block;
+    margin-inline-start: 10px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    vertical-align: 1px;
+    font:
+      700 13px/1 var(--font-ubuntu),
+      sans-serif;
+    font-style: normal;
+    color: var(--gold);
+    background: rgba(42, 16, 3, 0.85);
+  }
+
+  /* The size of a table line, beside its name. */
+  .ct-sz {
+    display: inline-block;
+    margin-inline-start: 8px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    vertical-align: 2px;
+    font:
+      700 11px/1 var(--font-ubuntu),
+      sans-serif;
+    color: #2a1003;
+    background: linear-gradient(170deg, #f6c062, #e39a2b 45%, #b9650f);
+  }
+  #ct-sheet.w .ct-sz {
+    font-size: 16px;
+    padding: 4px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pour .szp-blob,
+  .pour .szp-trail,
+  .pour #xf img {
+    transition: none;
+  }
+}

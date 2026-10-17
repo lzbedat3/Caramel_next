@@ -4,6 +4,7 @@ export const he = {
   open: "פתוח עכשיו",
   closed: "סגור עכשיו",
   unavailable: "לא זמין כרגע",
+  size: "גודל",
   addToTable: "לשולחן שלי",
   myTable: "השולחן שלי",
   summary: "סיכום",

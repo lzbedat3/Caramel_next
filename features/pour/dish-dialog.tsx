@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import type { StageDish } from "@/features/pour/pour-stage";
+import { SizePicker, useRollingAmount } from "@/features/pour/size-picker";
 import type { Dictionary } from "@/lib/i18n";
+import type { Size } from "@/lib/sizes";
 
 type DishDialogProps = {
   dish: StageDish | null;
@@ -11,7 +13,10 @@ type DishDialogProps = {
   lowSrc: string | null;
   originRef: React.RefObject<HTMLElement | null>;
   strings: Dictionary;
-  onAdd: (id: number) => void;
+  /** The chosen size; only read for a dish that comes in sizes. */
+  size: Size;
+  onSize: (size: Size) => void;
+  onAdd: (id: number, size: Size | null) => void;
   onClosed: () => void;
 };
 
@@ -23,9 +28,14 @@ export function DishDialog({
   lowSrc,
   originRef,
   strings,
+  size,
+  onSize,
   onAdd,
   onClosed,
 }: DishDialogProps) {
+  const chosen = dish?.sizes?.find((entry) => entry.size === size) ?? null;
+  const shownPrice = chosen?.price ?? dish?.price ?? null;
+  const amount = useRollingAmount(chosen ? chosen.value : null);
   const overlay = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
@@ -145,6 +155,7 @@ export function DishDialog({
     }
 
     const id = dish.id;
+    const addedSize = chosen ? chosen.size : null;
     const from = event.currentTarget.getBoundingClientRect();
     const drop = document.createElement("div");
     drop.className = "ct-drop";
@@ -154,7 +165,7 @@ export function DishDialog({
     const fall = window.innerHeight - 60 - (from.top + from.height / 2);
     const done = () => {
       drop.remove();
-      onAdd(id);
+      onAdd(id, addedSize);
       navigator.vibrate?.(12);
     };
     if (typeof drop.animate === "function") {
@@ -192,7 +203,11 @@ export function DishDialog({
       }}
     >
       <div className="bk" />
-      <div id="xf" ref={frame}>
+      <div
+        id="xf"
+        ref={frame}
+        data-size={chosen ? chosen.size : undefined}
+      >
         <div className="in" ref={inner}>
           {lowSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -220,10 +235,18 @@ export function DishDialog({
         <small>{dish?.categoryName}</small>
         <h2>{dish?.name}</h2>
         <p>{dish?.description}</p>
-        {dish?.price ? (
+        {dish?.sizes ? (
+          <SizePicker
+            sizes={dish.sizes}
+            value={size}
+            label={strings.size}
+            onChange={onSize}
+          />
+        ) : null}
+        {shownPrice ? (
           <div className="xp">
-            <i>{dish.price.symbol}</i>
-            <b>{dish.price.amount}</b>
+            <i>{shownPrice.symbol}</i>
+            <b>{amount ?? shownPrice.amount}</b>
           </div>
         ) : null}
         <button
@@ -233,6 +256,9 @@ export function DishDialog({
           onClick={add}
         >
           {dish && !dish.isAvailable ? strings.unavailable : strings.addToTable}
+          {chosen && dish?.isAvailable ? (
+            <em dir="ltr">{chosen.size}</em>
+          ) : null}
         </button>
       </div>
       <button

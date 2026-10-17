@@ -6,8 +6,9 @@ import { storageBuckets } from "@/config/storage";
 import {
   emptyToNull,
   isMenuItemImagePath,
+  menuItemPrices,
   parseCategoryId,
-  parsePrice,
+  readMenuItemMetadata,
   validateMenuItemMetadata,
 } from "@/lib/admin/menu-item";
 import { currentUserIsAdmin, getAuthClaims } from "@/lib/auth/session";
@@ -54,15 +55,6 @@ function parseStoragePath(value: unknown): string | null {
     return null;
   }
   return value;
-}
-
-function readMetadata(formData: FormData) {
-  return {
-    name: String(formData.get("name") ?? ""),
-    shortDescription: String(formData.get("short_description") ?? ""),
-    price: String(formData.get("price") ?? ""),
-    categoryId: String(formData.get("category_id") ?? ""),
-  };
 }
 
 async function removeMenuItemObjects(
@@ -142,7 +134,7 @@ export async function createMenuItem(
     return { status: "error", message: "אין הרשאה להוסיף מנה" };
   }
 
-  const metadata = readMetadata(formData);
+  const metadata = readMenuItemMetadata(formData);
   const fieldErrors = validateMenuItemMetadata(metadata);
   const replacementPath = parseStoragePath(formData.get("storage_path"));
   const rawPath = formData.get("storage_path");
@@ -153,7 +145,10 @@ export async function createMenuItem(
   }
 
   const firstError =
-    fieldErrors.name ?? fieldErrors.categoryId ?? fieldErrors.price;
+    fieldErrors.name ??
+    fieldErrors.categoryId ??
+    fieldErrors.price ??
+    fieldErrors.sizes;
   if (firstError) {
     if (replacementPath) {
       await removeMenuItemObjects(supabase, [replacementPath]);
@@ -162,8 +157,8 @@ export async function createMenuItem(
   }
 
   const categoryId = parseCategoryId(metadata.categoryId);
-  const price = parsePrice(metadata.price);
-  if (!categoryId || "error" in price) {
+  const prices = menuItemPrices(metadata);
+  if (!categoryId || "error" in prices) {
     if (replacementPath) {
       await removeMenuItemObjects(supabase, [replacementPath]);
     }
@@ -181,7 +176,7 @@ export async function createMenuItem(
     name: metadata.name.trim(),
     short_description: emptyToNull(metadata.shortDescription),
     ...readTranslations(formData, MENU_ITEM_TRANSLATED_FIELDS),
-    price: price.value,
+    ...prices,
     category_id: categoryId,
     storage_path: replacementPath,
     is_visible: formData.get("is_visible") === "on",
@@ -224,7 +219,7 @@ export async function updateMenuItem(
     return { status: "error", message: "לא הצלחנו לטעון את המנה" };
   }
 
-  const metadata = readMetadata(formData);
+  const metadata = readMenuItemMetadata(formData);
   const fieldErrors = validateMenuItemMetadata(metadata);
   const replacementPath = parseStoragePath(formData.get("storage_path"));
   const rawPath = formData.get("storage_path");
@@ -236,7 +231,10 @@ export async function updateMenuItem(
   }
 
   const firstError =
-    fieldErrors.name ?? fieldErrors.categoryId ?? fieldErrors.price;
+    fieldErrors.name ??
+    fieldErrors.categoryId ??
+    fieldErrors.price ??
+    fieldErrors.sizes;
   if (firstError) {
     if (replacementPath) {
       await removeMenuItemObjects(supabase, [replacementPath]);
@@ -245,8 +243,8 @@ export async function updateMenuItem(
   }
 
   const categoryId = parseCategoryId(metadata.categoryId);
-  const price = parsePrice(metadata.price);
-  if (!categoryId || "error" in price) {
+  const prices = menuItemPrices(metadata);
+  if (!categoryId || "error" in prices) {
     if (replacementPath) {
       await removeMenuItemObjects(supabase, [replacementPath]);
     }
@@ -279,7 +277,7 @@ export async function updateMenuItem(
       name: metadata.name.trim(),
       short_description: emptyToNull(metadata.shortDescription),
       ...readTranslations(formData, MENU_ITEM_TRANSLATED_FIELDS),
-      price: price.value,
+      ...prices,
       category_id: categoryId,
       storage_path: nextPath,
       sort_order: nextSort,

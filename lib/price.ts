@@ -1,3 +1,5 @@
+import { SIZES, sizePricesFromRow } from "@/lib/sizes";
+
 const ILS_FORMAT_WHOLE = new Intl.NumberFormat("he-IL", {
   style: "currency",
   currency: "ILS",
@@ -46,4 +48,20 @@ export function formatPriceParts(
   }
 
   return { symbol, amount };
+}
+
+/** "₪50", or "S ₪45 · M ₪55 · L ₪68" for a dish that comes in sizes. */
+export function menuItemPriceLabel(item: {
+  price: number | string;
+  price_s?: number | string | null;
+  price_m?: number | string | null;
+  price_l?: number | string | null;
+}): string {
+  const sizes = sizePricesFromRow(item);
+  if (!sizes) {
+    return formatPriceIls(item.price);
+  }
+  return SIZES.map((size) => `${size} ${formatPriceIls(sizes[size])}`).join(
+    " · ",
+  );
 }
